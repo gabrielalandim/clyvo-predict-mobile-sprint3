@@ -13,6 +13,12 @@ export type RootStackParamList = {
   };
   AddHealthEvent: {
     petId: string;
+    editEvent?: {
+      id: string;
+      tipoEvento: import('@models/HealthEvent').TipoEvento;
+      descricao: string;
+      dataEvento: string;
+    };
   };
   History: undefined;
   Carteirinha:

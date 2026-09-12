@@ -19,3 +19,7 @@ export function toIsoDate(dateStr: string): string {
   const [day, month, year] = dateStr.split('/');
   return `${year}-${month}-${day}`;
 }
+export function fromIsoDate(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-');
+  return `${day}/${month}/${year}`;
+}

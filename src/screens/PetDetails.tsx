@@ -109,8 +109,22 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
     );
   };
 
-  const handleOpenEventMenu = (eventId: string) => {
+  const handleOpenEventMenu = (evt: (typeof events)[number]) => {
     Alert.alert('Gerenciar evento', 'O que você quer fazer com esse registro?', [
+      {
+        text: 'Editar',
+        onPress: () => {
+          navigation.navigate('AddHealthEvent', {
+            petId,
+            editEvent: {
+              id: evt.id,
+              tipoEvento: evt.tipoEvento,
+              descricao: evt.descricao,
+              dataEvento: evt.dataEvento,
+            },
+          });
+        },
+      },
       {
         text: 'Excluir',
         style: 'destructive',
@@ -122,7 +136,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
               style: 'destructive',
               onPress: () => {
                 deleteEventMutation.mutate(
-                  { id: eventId, petId },
+                  { id: evt.id, petId },
                   { onError: (error: any) => Alert.alert('Erro', error.message) },
                 );
               },
@@ -241,7 +255,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
                 <TouchableOpacity
                   key={evt.id}
                   style={styles.eventRowCard}
-                  onLongPress={() => handleOpenEventMenu(evt.id)}
+                  onLongPress={() => handleOpenEventMenu(evt)}
                   delayLongPress={350}
                 >
                   <View

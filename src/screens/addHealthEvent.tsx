@@ -14,10 +14,10 @@ import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES } from '@constants/theme';
 import { EVENT_TYPES, TipoEvento } from '@models/HealthEvent';
-import { maskDateInput, isValidDateInput, toIsoDate } from '@utils/dateInput';
+import { maskDateInput, isValidDateInput, toIsoDate, fromIsoDate } from '@utils/dateInput';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@contexts/ThemeContext';
-import { useCreateHealthEvent } from '@hooks/useHealthEvents';
+import { useCreateHealthEvent, useUpdateHealthEvent } from '@hooks/useHealthEvents';
 type AddHealthEventNavigationProp = StackNavigationProp<RootStackParamList, 'AddHealthEvent'>;
 type AddHealthEventRouteProp = RouteProp<RootStackParamList, 'AddHealthEvent'>;
 interface Props {
@@ -27,11 +27,13 @@ interface Props {
 const AddHealthEventScreen: React.FC<Props> = ({ navigation, route }) => {
   const { colors: COLORS } = useTheme();
   const styles = makeStyles(COLORS);
-  const { petId } = route.params;
-  const [descricao, setDescricao] = useState('');
-  const [tipo, setTipo] = useState<TipoEvento>('VACINA');
-  const [dataTexto, setDataTexto] = useState('');
+  const { petId, editEvent } = route.params;
+  const [descricao, setDescricao] = useState(editEvent?.descricao ?? '');
+  const [tipo, setTipo] = useState<TipoEvento>(editEvent?.tipoEvento ?? 'VACINA');
+  const [dataTexto, setDataTexto] = useState(editEvent ? fromIsoDate(editEvent.dataEvento) : '');
   const createEventMutation = useCreateHealthEvent();
+  const updateEventMutation = useUpdateHealthEvent();
+  const isSaving = createEventMutation.isPending || updateEventMutation.isPending;
   const handleDateChange = (text: string) => {
     setDataTexto(maskDateInput(text));
   };
@@ -40,17 +42,31 @@ const AddHealthEventScreen: React.FC<Props> = ({ navigation, route }) => {
       Alert.alert('Erro', 'Preencha a descrição e uma data válida (dd/mm/aaaa).');
       return;
     }
-    createEventMutation.mutate(
-      { petId, tipoEvento: tipo, descricao: descricao.trim(), dataEvento: toIsoDate(dataTexto) },
-      {
-        onSuccess: () => {
-          Alert.alert('Sucesso!', 'Evento salvo e o score do pet foi atualizado.', [
-            { text: 'Perfeito', onPress: () => navigation.navigate('Home') },
-          ]);
+    if (editEvent) {
+      updateEventMutation.mutate(
+        { id: editEvent.id, petId, tipoEvento: tipo, descricao: descricao.trim(), dataEvento: toIsoDate(dataTexto) },
+        {
+          onSuccess: () => {
+            Alert.alert('Sucesso!', 'Evento atualizado.', [
+              { text: 'Perfeito', onPress: () => navigation.navigate('Home') },
+            ]);
+          },
+          onError: (error: any) => Alert.alert('Erro', error.message),
         },
-        onError: (error: any) => Alert.alert('Erro', error.message),
-      },
-    );
+      );
+    } else {
+      createEventMutation.mutate(
+        { petId, tipoEvento: tipo, descricao: descricao.trim(), dataEvento: toIsoDate(dataTexto) },
+        {
+          onSuccess: () => {
+            Alert.alert('Sucesso!', 'Evento salvo e o score do pet foi atualizado.', [
+              { text: 'Perfeito', onPress: () => navigation.navigate('Home') },
+            ]);
+          },
+          onError: (error: any) => Alert.alert('Erro', error.message),
+        },
+      );
+    }
   };
   return (
     <View style={styles.container}>
@@ -58,7 +74,7 @@ const AddHealthEventScreen: React.FC<Props> = ({ navigation, route }) => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={28} color={COLORS.white} />
         </TouchableOpacity>
-        <Text style={styles.title}>Registrar Evento</Text>
+        <Text style={styles.title}>{editEvent ? 'Editar Evento' : 'Registrar Evento'}</Text>
         <View style={{ width: 28 }} />
       </View>
 
@@ -118,11 +134,11 @@ const AddHealthEventScreen: React.FC<Props> = ({ navigation, route }) => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={createEventMutation.isPending}>
-          {createEventMutation.isPending ? (
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isSaving}>
+          {isSaving ? (
             <ActivityIndicator color={COLORS.white} />
           ) : (
-            <Text style={styles.submitButtonText}>Salvar Evento</Text>
+            <Text style={styles.submitButtonText}>{editEvent ? 'Salvar Alterações' : 'Salvar Evento'}</Text>
           )}
         </TouchableOpacity>
       </View>
