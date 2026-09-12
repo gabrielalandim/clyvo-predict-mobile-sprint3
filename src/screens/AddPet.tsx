@@ -17,12 +17,12 @@ import { SPACING, FONT_SIZES } from '@constants/theme';
 import { RACES_BY_SPECIES, SPECIES_CONFIG, getBreedIcon, Species } from '@constants/races';
 import { normalizeSpecies } from '@utils/species';
 import { maskDateInput, isValidDateInput } from '@utils/dateInput';
-import { petService } from '@services/petService';
 import { PetFormData } from '@models/Pet';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@contexts/ThemeContext';
 import { useAuth } from '@contexts/AuthContext';
+import { usePet, useCreatePet, useUpdatePet, useAnalisarCadastro } from '@hooks/usePets';
 type AddPetScreenNavigationProp = StackNavigationProp<RootStackParamList, 'AddPet'>;
 type AddPetScreenRouteProp = RouteProp<RootStackParamList, 'AddPet'>;
 interface Props {
@@ -62,42 +62,45 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [showDropdown, setShowDropdown] = useState(false);
   const [isCustomBreed, setIsCustomBreed] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [aiApplied, setAiApplied] = useState(false);
   const [pesoEstimado, setPesoEstimado] = useState<{
     min: number;
     max: number;
   } | null>(null);
   const [iaConfianca, setIaConfianca] = useState<number | null>(null);
-  const [loadingPet, setLoadingPet] = useState(mode === 'edit');
+  const editingPetId = mode === 'edit' ? route.params?.petId : undefined;
+  const { data: editingPet, isLoading: loadingPet, error: petLoadError } = usePet(editingPetId);
+  const createPetMutation = useCreatePet();
+  const updatePetMutation = useUpdatePet();
+  const analisarCadastroMutation = useAnalisarCadastro();
+  const submitting = createPetMutation.isPending || updatePetMutation.isPending;
+  const analyzing = analisarCadastroMutation.isPending;
+
   useEffect(() => {
-    if (mode !== 'edit' || !route.params?.petId) return;
-    petService
-      .getPet(route.params.petId)
-      .then((pet) => {
-        setFormData({
-          name: pet.name,
-          species: pet.species,
-          breed: pet.breed,
-          age: String(pet.age),
-          birthDate: pet.birthDate ?? '',
-          weight: String(pet.weight),
-          sex: pet.sex,
-          neutered: pet.neutered,
-          microchip: pet.microchip ?? '',
-          observations: pet.observations ?? '',
-          photoUri: pet.photoUri ?? '',
-          color: pet.color ?? '',
-          size: pet.size ?? '',
-          bodyCondition: pet.bodyCondition ?? '',
-        });
-        const knownBreeds = RACES_BY_SPECIES[pet.species] ?? [];
-        if (!knownBreeds.includes(pet.breed)) setIsCustomBreed(true);
-      })
-      .catch((error) => Alert.alert('Erro ao carregar pet', error.message))
-      .finally(() => setLoadingPet(false));
-  }, [mode, route.params?.petId]);
+    if (petLoadError) Alert.alert('Erro ao carregar pet', (petLoadError as Error).message);
+  }, [petLoadError]);
+
+  useEffect(() => {
+    if (!editingPet) return;
+    setFormData({
+      name: editingPet.name,
+      species: editingPet.species,
+      breed: editingPet.breed,
+      age: String(editingPet.age),
+      birthDate: editingPet.birthDate ?? '',
+      weight: String(editingPet.weight),
+      sex: editingPet.sex,
+      neutered: editingPet.neutered,
+      microchip: editingPet.microchip ?? '',
+      observations: editingPet.observations ?? '',
+      photoUri: editingPet.photoUri ?? '',
+      color: editingPet.color ?? '',
+      size: editingPet.size ?? '',
+      bodyCondition: editingPet.bodyCondition ?? '',
+    });
+    const knownBreeds = RACES_BY_SPECIES[editingPet.species] ?? [];
+    if (!knownBreeds.includes(editingPet.breed)) setIsCustomBreed(true);
+  }, [editingPet]);
   const getBreedPlaceholder = () => {
     switch (formData.species) {
       case 'dog':
@@ -109,9 +112,8 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
   const runAiAnalysis = async (uri: string) => {
-    setAnalyzing(true);
     try {
-      const resposta = await petService.analisarCadastro(uri);
+      const resposta = await analisarCadastroMutation.mutateAsync(uri);
       const analise = resposta.analise_cadastro;
       if (!analise) {
         Alert.alert(
@@ -145,8 +147,6 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
       );
     } catch (error: any) {
       Alert.alert('Erro ao analisar foto', error.message);
-    } finally {
-      setAnalyzing(false);
     }
   };
   const handlePickImage = async (fromCamera: boolean) => {
@@ -201,7 +201,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
     setErrors({ ...errors, breed: false });
     setShowDropdown(false);
   };
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!session) {
       Alert.alert('Sessão expirada', 'Faça login novamente.');
       return;
@@ -222,23 +222,30 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
       );
       return;
     }
-    setSubmitting(true);
-    try {
-      if (mode === 'edit' && route.params?.petId) {
-        const pet = await petService.updatePet(route.params.petId, formData, session.id);
-        Alert.alert('Sucesso!', `${pet.name} foi atualizado!`, [
-          { text: 'Ver meus pets', onPress: () => navigation.navigate('Home') },
-        ]);
-      } else {
-        const pet = await petService.createPet(formData, session.id);
-        Alert.alert('Sucesso!', `${pet.name} foi cadastrado!`, [
-          { text: 'Ver meus pets', onPress: () => navigation.navigate('Home') },
-        ]);
-      }
-    } catch (error: any) {
-      Alert.alert(mode === 'edit' ? 'Erro ao atualizar' : 'Erro ao cadastrar', error.message);
-    } finally {
-      setSubmitting(false);
+    if (mode === 'edit' && route.params?.petId) {
+      updatePetMutation.mutate(
+        { id: route.params.petId, form: formData, tutorId: session.id },
+        {
+          onSuccess: (pet) => {
+            Alert.alert('Sucesso!', `${pet.name} foi atualizado!`, [
+              { text: 'Ver meus pets', onPress: () => navigation.navigate('Home') },
+            ]);
+          },
+          onError: (error: any) => Alert.alert('Erro ao atualizar', error.message),
+        },
+      );
+    } else {
+      createPetMutation.mutate(
+        { form: formData, tutorId: session.id },
+        {
+          onSuccess: (pet) => {
+            Alert.alert('Sucesso!', `${pet.name} foi cadastrado!`, [
+              { text: 'Ver meus pets', onPress: () => navigation.navigate('Home') },
+            ]);
+          },
+          onError: (error: any) => Alert.alert('Erro ao cadastrar', error.message),
+        },
+      );
     }
   };
   return (

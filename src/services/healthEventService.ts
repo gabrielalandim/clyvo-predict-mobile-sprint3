@@ -37,4 +37,31 @@ export const healthEventService = {
       throw new Error(extractApiErrorMessage(error, 'Não foi possível salvar o evento de saúde.'));
     }
   },
+  async update(
+    id: string,
+    petId: string,
+    tipoEvento: TipoEvento,
+    descricao: string,
+    dataEvento: string
+  ): Promise<HealthEvent> {
+    try {
+      const { data } = await api.put<HealthEventApiDTO>(`/eventos/${id}`, {
+        petId: Number(petId),
+        tipoEvento,
+        descricao,
+        dataEvento,
+      });
+      return toViewModel(data);
+    } catch (error) {
+      throw new Error(extractApiErrorMessage(error, 'Não foi possível atualizar o evento de saúde.'));
+    }
+  },
+  async remove(id: string): Promise<void> {
+    try {
+      await api.delete(`/eventos/${id}`);
+    } catch (error) {
+      throw new Error(extractApiErrorMessage(error, 'Não foi possível excluir o evento de saúde.'));
+    }
+  },
 };
+

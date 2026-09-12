@@ -73,6 +73,7 @@ Os dois fluxos passam pela mesma tela (`AddPet.tsx`), diferenciados por um parâ
 - **Linguagem:** TypeScript (strict mode)
 - **Navegação:** React Navigation Stack v7, com troca de stack (auth vs. app) conforme sessão
 - **HTTP:** Axios, com interceptor que injeta `Authorization: Bearer <token>` automaticamente
+- **Cache e estado assíncrono:** TanStack Query (`useQuery`/`useMutation`) — toda leitura e escrita contra a API (pets e eventos de saúde) passa pelos hooks em `src/hooks/`, com invalidação automática de cache após criar/editar/excluir
 - **Autenticação:** JWT emitido pela API Java (`POST /api/tutores/login`), guardado com AsyncStorage (só o token/identidade — ver seção de limitações)
 - **Upload de imagem:** `expo-image-picker` (câmera ou galeria) + `FormData`/`multipart/form-data`
 - **Ícones:** Expo Vector Icons (Ionicons)
@@ -197,6 +198,7 @@ src/
 - **Rota do backend inconsistente:** `SecurityConfig.java` protege `/api/eventos-saude/**`, mas o `EventoSaudeController` está mapeado em `/api/eventos`. Isso não impede o app de funcionar (a rota real cai na regra genérica `.anyRequest().authenticated()`, que já exige um JWT válido de qualquer perfil), mas vale o time do Java ajustar o path do `SecurityConfig` para exigir explicitamente `TUTOR`/`VETERINARIO` nessa rota também.
 - **`EventoSaude` não persiste o score histórico de cada evento** — precisa de uma migration nova adicionando `novo_health_score` em `tb_evento_saude`, preenchida em `EventoSaudeService.cadastrarEvento` e usada (em vez de `evento.getPet().getHealthScore()`) em `buscarEventosPorPet`. Sem isso, o histórico de score por evento nunca vai refletir o valor real de cada momento — ver "Bugs corrigidos" acima.
 - **Excluir um pet com eventos de saúde falha com `ORA-02292`** (violação de FK) — falta `cascade = CascadeType.ALL, orphanRemoval = true` na relação `Pet → EventoSaude` (ou `ON DELETE CASCADE` na constraint do banco).
+- **Editar e excluir evento de saúde estão implementados no mobile, mas dependem do backend** — `healthEventService.ts` já chama `PUT /api/eventos/{id}` e `DELETE /api/eventos/{id}` (com os hooks `useUpdateHealthEvent`/`useDeleteHealthEvent`), seguindo a mesma convenção REST usada em `/api/pets/{id}`. O `EventoSaudeController` atual só expõe `POST` e `GET /pet/{petId}` — falta adicionar os métodos `PUT`/`DELETE` (patch pronto, é só pedir). Até lá, o botão de excluir evento na tela de detalhes do pet mostra uma mensagem de erro tratada em vez de travar o app.
 - **Vídeo de apresentação:** não temos como gravar/publicar vídeo por aqui. As instruções acima (rodar Python → Java → Mobile, telas envolvidas) servem de roteiro para a gravação exigida no critério "Vídeo de apresentação do aplicativo (15 pontos)".
 - Não recebemos o repositório do serviço Python nesta entrega, então não foi possível testar o fluxo de `/analisar-cadastro` ponta a ponta — só o contrato (request/response) documentado no enunciado foi validado contra o código Java real (`ClyvoAiService.java`, `PetRegistrationAiResponseDTO.java`).
 

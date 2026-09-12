@@ -8,12 +8,12 @@ import { FactorBar } from '@components/FactorBar';
 import { ScoreInfoModal } from '@components/ScoreInfoModal';
 import { NotesSection } from '@components/NotesSection';
 import { Ionicons } from '@expo/vector-icons';
-import { petService } from '@services/petService';
-import { healthEventService } from '@services/healthEventService';
-import { Pet } from '@models/Pet';
-import { HealthEvent, getEventTypeConfig } from '@models/HealthEvent';
+import { getEventTypeConfig } from '@models/HealthEvent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@contexts/ThemeContext';
+import { usePet, useDeletePet } from '@hooks/usePets';
+import { useHealthEvents, useDeleteHealthEvent } from '@hooks/useHealthEvents';
+
 type PetDetailsNavigationProp = StackNavigationProp<RootStackParamList, 'PetDetails'>;
 type PetDetailsRouteProp = RouteProp<RootStackParamList, 'PetDetails'>;
 interface Props {
@@ -29,29 +29,32 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   const { colors: COLORS } = useTheme();
   const styles = makeStyles(COLORS);
   const { petId } = route.params;
-  const [pet, setPet] = useState<Pet | null>(null);
+
+  const { data: pet, isLoading: petLoading, error: petError, refetch: refetchPet } = usePet(petId);
+  const { data: events = [], error: eventsError, refetch: refetchEvents } = useHealthEvents(petId);
+  const deletePetMutation = useDeletePet();
+  const deleteEventMutation = useDeleteHealthEvent();
+
   const [anotacoesList, setAnotacoesList] = useState<AnotacaoData[]>([]);
-  const [events, setEvents] = useState<HealthEvent[]>([]);
-  const [loading, setLoading] = useState(true);
   const [infoModalVisible, setInfoModalVisible] = useState(false);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      fetchPetDetails();
+      refetchPet();
+      refetchEvents();
       handleGetNotes();
-      loadEvents();
     });
     return unsubscribe;
-  }, [navigation, petId]);
-  const fetchPetDetails = async () => {
-    try {
-      const foundPet = await petService.getPet(petId);
-      setPet(foundPet);
-    } catch (err: any) {
-      Alert.alert('Erro', err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [navigation, refetchPet, refetchEvents]);
+
+  useEffect(() => {
+    if (petError) Alert.alert('Erro', (petError as Error).message);
+  }, [petError]);
+
+  useEffect(() => {
+    if (eventsError) Alert.alert('Erro ao carregar histórico', (eventsError as Error).message);
+  }, [eventsError]);
+
   const handleGetNotes = async () => {
     try {
       const key = `@pet_notes_${petId}`;
@@ -61,14 +64,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
       console.log(error);
     }
   };
-  const loadEvents = async () => {
-    try {
-      const remoteEvents = await healthEventService.listByPet(petId);
-      setEvents(remoteEvents);
-    } catch (error: any) {
-      Alert.alert('Erro ao carregar histórico', error.message);
-    }
-  };
+
   const handleOpenMenu = () => {
     if (!pet) return;
     Alert.alert(`Gerenciar ${pet.name}`, 'Escolha uma das opções abaixo:', [
@@ -87,6 +83,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
       },
     ]);
   };
+
   const handleConfirmDelete = () => {
     if (!pet) return;
     Alert.alert(
@@ -97,29 +94,52 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
         {
           text: 'Sim, Deletar',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              await petService.deletePet(pet.id);
-              Alert.alert('Sucesso', 'Pet removido com sucesso!', [
-                { text: 'OK', onPress: () => navigation.navigate('Home') },
-              ]);
-            } catch (error: any) {
-              Alert.alert('Erro', error.message);
-            } finally {
-              setLoading(false);
-            }
+          onPress: () => {
+            deletePetMutation.mutate(pet.id, {
+              onSuccess: () => {
+                Alert.alert('Sucesso', 'Pet removido com sucesso!', [
+                  { text: 'OK', onPress: () => navigation.navigate('Home') },
+                ]);
+              },
+              onError: (error: any) => Alert.alert('Erro', error.message),
+            });
           },
         },
       ],
     );
   };
+
+  const handleOpenEventMenu = (eventId: string) => {
+    Alert.alert('Gerenciar evento', 'O que você quer fazer com esse registro?', [
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert('Confirmar exclusão', 'Tem certeza que quer excluir esse evento?', [
+            { text: 'Não', style: 'cancel' },
+            {
+              text: 'Sim, excluir',
+              style: 'destructive',
+              onPress: () => {
+                deleteEventMutation.mutate(
+                  { id: eventId, petId },
+                  { onError: (error: any) => Alert.alert('Erro', error.message) },
+                );
+              },
+            },
+          ]);
+        },
+      },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
+  };
+
   const getStatusText = (score: number) => {
     if (score >= 80) return 'Excelente';
     if (score >= 50) return 'Regular';
     return 'Crítico';
   };
-  if (loading) {
+  if (petLoading) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
@@ -218,7 +238,12 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
               <Text style={styles.infoText}>Nenhum evento registrado para este pet.</Text>
             ) : (
               events.map((evt) => (
-                <View key={evt.id} style={styles.eventRowCard}>
+                <TouchableOpacity
+                  key={evt.id}
+                  style={styles.eventRowCard}
+                  onLongPress={() => handleOpenEventMenu(evt.id)}
+                  delayLongPress={350}
+                >
                   <View
                     style={[
                       styles.eventIcon,
@@ -237,9 +262,10 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
                     {evt.deltaScore > 0 ? '+' : ''}
                     {evt.deltaScore}
                   </Text>
-                </View>
+                </TouchableOpacity>
               ))
             )}
+            {events.length > 0 && <Text style={styles.hintText}>Segure um evento pra excluir.</Text>}
           </View>
 
           <TouchableOpacity
@@ -350,6 +376,7 @@ const makeStyles = (COLORS: any) =>
     infoIconButton: { paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs },
     rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     infoText: { fontSize: FONT_SIZES.md, color: COLORS.textSecondary, marginTop: SPACING.xs },
+    hintText: { fontSize: 12, color: COLORS.textSecondary, marginTop: SPACING.sm, fontStyle: 'italic' },
     eventRowCard: {
       flexDirection: 'row',
       alignItems: 'center',

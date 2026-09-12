@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useTheme } from '@contexts/ThemeContext';
 import { COLORS, SPACING, FONT_SIZES } from '../constants/theme';
 import { Pet } from '../models/Pet';
@@ -9,8 +9,17 @@ interface WalletHeaderProps {
   currentPet: Pet | null;
   onBack: () => void;
   onSelectPet: (pet: Pet) => void;
+  onGeneratePDF?: () => void;
+  generatingPDF?: boolean;
 }
-export const WalletHeader: React.FC<WalletHeaderProps> = ({ pets, currentPet, onBack, onSelectPet }) => {
+export const WalletHeader: React.FC<WalletHeaderProps> = ({
+  pets,
+  currentPet,
+  onBack,
+  onSelectPet,
+  onGeneratePDF,
+  generatingPDF,
+}) => {
   const { colors: COLORS } = useTheme();
   const styles = makeStyles(COLORS);
   return (
@@ -20,7 +29,15 @@ export const WalletHeader: React.FC<WalletHeaderProps> = ({ pets, currentPet, on
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Carteirinha Digital</Text>
-        <View style={{ width: 36 }} />
+        {onGeneratePDF && (
+          <TouchableOpacity style={styles.pdfBtnHeader} onPress={onGeneratePDF} disabled={generatingPDF}>
+            {generatingPDF ? (
+              <ActivityIndicator size="small" color={COLORS.white} />
+            ) : (
+              <Text style={styles.pdfBtnHeaderText}>📄 PDF</Text>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
 
       {pets.length > 1 && (

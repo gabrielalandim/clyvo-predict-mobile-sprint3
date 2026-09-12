@@ -15,12 +15,13 @@ import { RootStackParamList } from '../navigation/types';
 import { SPACING, FONT_SIZES } from '../constants/theme';
 import { Pet } from '@models/Pet';
 import { HealthEvent, getEventTypeConfig } from '@models/HealthEvent';
-import { petService } from '@services/petService';
-import { healthEventService } from '@services/healthEventService';
 import { BottomTabBar } from '../components/BottomBarTab';
 import { WalletHeader } from '@components/WalletHeader';
 import { PetIdentityCard } from '@components/PetIdentityCard';
 import { useTheme } from '@contexts/ThemeContext';
+import { usePets } from '@hooks/usePets';
+import { useHealthEvents } from '@hooks/useHealthEvents';
+import { generateAndSharePetPdf } from '@utils/petPdf';
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Carteirinha'>;
   route: RouteProp<RootStackParamList, 'Carteirinha'>;
@@ -61,42 +62,37 @@ function EventList({ events, emptyLabel }: { events: HealthEvent[]; emptyLabel: 
 export default function CarteirinhaScreen({ navigation, route }: Props) {
   const { colors: COLORS } = useTheme();
   const styles = makeStyles(COLORS);
-  const [pets, setPets] = useState<Pet[]>([]);
-  const [currentPet, setCurrentPet] = useState<Pet | null>(null);
-  const [events, setEvents] = useState<HealthEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [currentPetId, setCurrentPetId] = useState<string | null>(route.params?.petId ?? null);
+
+  const { data: pets = [], isLoading: loading, error: petsError } = usePets();
+  const currentPet: Pet | null = pets.find((p) => p.id === currentPetId) ?? pets[0] ?? null;
+  const { data: events = [], isLoading: loadingEvents, error: eventsError } = useHealthEvents(currentPet?.id);
+
   useEffect(() => {
-    const loadPetsData = async () => {
-      try {
-        const remotePets = await petService.listPets();
-        setPets(remotePets);
-        const foundPet = remotePets.find((p) => p.id === route.params?.petId);
-        setCurrentPet(foundPet ?? remotePets[0] ?? null);
-      } catch (error: any) {
-        Alert.alert('Erro ao carregar pets', error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadPetsData();
-  }, [route.params?.petId]);
+    if (petsError) Alert.alert('Erro ao carregar pets', (petsError as Error).message);
+  }, [petsError]);
+
   useEffect(() => {
-    if (!currentPet) {
-      setEvents([]);
-      return;
-    }
-    setLoadingEvents(true);
-    healthEventService
-      .listByPet(currentPet.id)
-      .then(setEvents)
-      .catch((error) => Alert.alert('Erro ao carregar histórico', error.message))
-      .finally(() => setLoadingEvents(false));
-  }, [currentPet?.id]);
+    if (eventsError) Alert.alert('Erro ao carregar histórico', (eventsError as Error).message);
+  }, [eventsError]);
   const vacinas = events.filter((e) => e.tipoEvento === 'VACINA');
   const exames = events.filter((e) => e.tipoEvento === 'EXAME');
   const consultas = events.filter((e) => e.tipoEvento === 'CONSULTA_ROTINA');
   const outros = events.filter((e) => !['VACINA', 'EXAME', 'CONSULTA_ROTINA'].includes(e.tipoEvento));
+
+  const [generatingPDF, setGeneratingPDF] = useState(false);
+  const handleGeneratePDF = async () => {
+    if (!currentPet) return;
+    setGeneratingPDF(true);
+    try {
+      await generateAndSharePetPdf(currentPet, events);
+    } catch (error: any) {
+      Alert.alert('Erro ao gerar PDF', error.message ?? 'Não foi possível gerar o PDF agora.');
+    } finally {
+      setGeneratingPDF(false);
+    }
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={[styles.safe, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -111,7 +107,9 @@ export default function CarteirinhaScreen({ navigation, route }: Props) {
           pets={pets}
           currentPet={currentPet}
           onBack={() => navigation.goBack()}
-          onSelectPet={setCurrentPet}
+          onSelectPet={(p) => setCurrentPetId(p.id)}
+          onGeneratePDF={currentPet ? handleGeneratePDF : undefined}
+          generatingPDF={generatingPDF}
         />
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -160,8 +158,8 @@ export default function CarteirinhaScreen({ navigation, route }: Props) {
               </TouchableOpacity>
 
               <Text style={styles.footerNote}>
-                Esta carteirinha reflete o histórico de eventos de saúde cadastrado no app — não gera arquivo PDF
-                (recurso ainda não implementado).
+                Esta carteirinha reflete o histórico de eventos de saúde cadastrado no app. Toque em "📄 PDF" no topo
+                para gerar e compartilhar um resumo em PDF.
               </Text>
             </>
           )}

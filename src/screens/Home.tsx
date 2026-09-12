@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -12,14 +12,13 @@ import {
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
 import { COLORS, SPACING, FONT_SIZES } from '@constants/theme';
-import { Pet } from '@models/Pet';
-import { petService } from '@services/petService';
 import { useAuth } from '@contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomTabBar } from '@components/BottomBarTab';
 import { PlansSection } from '@components/PlansSection';
 import { PetCard } from '@components/PetCard';
 import { useTheme } from '@contexts/ThemeContext';
+import { usePets, useDeletePet } from '@hooks/usePets';
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 interface Props {
   navigation: HomeScreenNavigationProp;
@@ -28,33 +27,21 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const { colors: COLORS } = useTheme();
   const styles = makeStyles(COLORS);
   const { session } = useAuth();
-  const [pets, setPets] = useState<Pet[]>([]);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
-  useEffect(() => {
-    loadPets();
-  }, []);
-  useEffect(() => {
+
+  const { data: pets = [], isLoading, isRefetching, error, refetch } = usePets();
+  const deletePetMutation = useDeletePet();
+
+  React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      loadPets();
+      refetch();
     });
     return unsubscribe;
-  }, [navigation]);
-  const loadPets = async () => {
-    try {
-      const loadedPets = await petService.listPets();
-      setPets(loadedPets);
-    } catch (error: any) {
-      Alert.alert('Erro ao carregar pets', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await loadPets();
-    setRefreshing(false);
-  };
+  }, [navigation, refetch]);
+
+  React.useEffect(() => {
+    if (error) Alert.alert('Erro ao carregar pets', (error as Error).message);
+  }, [error]);
+
   const handleDeletePet = (petId: string) => {
     Alert.alert(
       'Remover Pet',
@@ -64,13 +51,10 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         {
           text: 'Remover',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await petService.deletePet(petId);
-              setPets((prevPets) => prevPets.filter((pet) => pet.id !== petId));
-            } catch (error: any) {
-              Alert.alert('Erro', error.message);
-            }
+          onPress: () => {
+            deletePetMutation.mutate(petId, {
+              onError: (err: any) => Alert.alert('Erro', err.message),
+            });
           },
         },
       ],
@@ -114,7 +98,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.flexGrow}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[COLORS.primary]} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[COLORS.primary]} />}
         renderItem={({ item }) => (
           <PetCard
             item={item}
@@ -124,7 +108,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           />
         )}
         ListEmptyComponent={
-          loading ? (
+          isLoading ? (
             <View style={styles.emptyState}>
               <ActivityIndicator size="large" color={COLORS.primary} />
             </View>

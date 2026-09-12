@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Switch, Alert } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
@@ -7,7 +7,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomTabBar } from '../components/BottomBarTab';
 import { useTheme } from '@contexts/ThemeContext';
 import { useAuth } from '@contexts/AuthContext';
-import { petService } from '@services/petService';
+import { useState } from 'react';
+import { usePets } from '@hooks/usePets';
+import { useQueries } from '@tanstack/react-query';
+import { healthEventKeys } from '@hooks/useHealthEvents';
 import { healthEventService } from '@services/healthEventService';
 type TutorProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'tutorProfile'>;
 type Props = {
@@ -19,29 +22,18 @@ export default function TutorProfileScreen({ navigation }: Props) {
   const { session, logout } = useAuth();
   const [notifications, setNotifications] = useState<boolean>(true);
   const [whatsappAlerts, setWhatsappAlerts] = useState<boolean>(true);
-  const [petCount, setPetCount] = useState<number>(0);
-  const [eventCount, setEventCount] = useState<number>(0);
-  useEffect(() => {
-    petService
-      .listPets()
-      .then(async (pets) => {
-        setPetCount(pets.length);
-        try {
-          const counts = await Promise.all(
-            pets.map((p) =>
-              healthEventService
-                .listByPet(p.id)
-                .then((evts) => evts.length)
-                .catch(() => 0),
-            ),
-          );
-          setEventCount(counts.reduce((a, b) => a + b, 0));
-        } catch {
-          setEventCount(0);
-        }
-      })
-      .catch(() => {});
-  }, []);
+
+  const { data: pets = [] } = usePets();
+  const petCount = pets.length;
+
+  const eventQueries = useQueries({
+    queries: pets.map((p) => ({
+      queryKey: healthEventKeys.byPet(p.id),
+      queryFn: () => healthEventService.listByPet(p.id),
+    })),
+  });
+  const eventCount = eventQueries.reduce((total, q) => total + (q.data?.length ?? 0), 0);
+
   const handleLogout = () => {
     Alert.alert('Sair da Conta', 'Tem certeza que deseja fechar sua sessão?', [
       { text: 'Cancelar', style: 'cancel' },

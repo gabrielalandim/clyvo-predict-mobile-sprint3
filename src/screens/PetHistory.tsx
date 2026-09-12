@@ -13,13 +13,11 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { COLORS, SPACING, FONT_SIZES, getScoreColor } from '../constants/theme';
 import { SPECIES_CONFIG } from '../constants/races';
-import { getEventTypeConfig } from '@models/HealthEvent';
-import { Pet } from '@models/Pet';
-import { HealthEvent } from '@models/HealthEvent';
-import { petService } from '@services/petService';
-import { healthEventService } from '@services/healthEventService';
+import { getEventTypeConfig, HealthEvent } from '@models/HealthEvent';
 import { BottomTabBar } from '../components/BottomBarTab';
 import { useTheme } from '@contexts/ThemeContext';
+import { usePets } from '@hooks/usePets';
+import { useHealthEvents } from '@hooks/useHealthEvents';
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'History'>;
 };
@@ -36,41 +34,26 @@ const parseEventDate = (dataEvento: string): Date => new Date(`${dataEvento}T00:
 export default function HistoryScreen({ navigation }: Props) {
   const { colors: COLORS } = useTheme();
   const styles = makeStyles(COLORS);
-  const [pets, setPets] = useState<Pet[]>([]);
   const [petSel, setPetSel] = useState<string>('');
   const [period, setPeriod] = useState<Period>('6m');
-  const [events, setEvents] = useState<HealthEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const { data: pets = [], isLoading: loading, error: petsError } = usePets();
+  const { data: events = [], error: eventsError } = useHealthEvents(petSel || undefined);
+
   useEffect(() => {
-    loadData();
-  }, []);
+    if (pets.length > 0 && !petSel) {
+      setPetSel(pets[0].id);
+    }
+  }, [pets, petSel]);
+
   useEffect(() => {
-    if (petSel) {
-      loadEvents(petSel);
-    }
-  }, [petSel]);
-  const loadData = async () => {
-    try {
-      const remotePets = await petService.listPets();
-      setPets(remotePets);
-      if (remotePets.length > 0) {
-        setPetSel(remotePets[0].id);
-      }
-    } catch (error: any) {
-      Alert.alert('Erro ao carregar pets', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const loadEvents = async (id: string) => {
-    try {
-      const remoteEvents = await healthEventService.listByPet(id);
-      setEvents(remoteEvents);
-    } catch (error: any) {
-      setEvents([]);
-      Alert.alert('Erro ao carregar histórico', error.message);
-    }
-  };
+    if (petsError) Alert.alert('Erro ao carregar pets', (petsError as Error).message);
+  }, [petsError]);
+
+  useEffect(() => {
+    if (eventsError) Alert.alert('Erro ao carregar histórico', (eventsError as Error).message);
+  }, [eventsError]);
+
   const currentPet = pets.find((p) => p.id === petSel);
   const currentScore = currentPet?.score ?? 70;
   const filteredEvents = useMemo(() => {
