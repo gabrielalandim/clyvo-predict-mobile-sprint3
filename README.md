@@ -3,7 +3,20 @@
 > *Do Reativo ao Preventivo*
 
 Aplicativo mobile desenvolvido para o **FIAP Challenge 2026** (2TDS · 3ª Sprint — Mobile Application Development).
-Nesta entrega o app deixou de usar dados 100% locais (AsyncStorage) e passou a consumir a **API Java (Spring Boot)** de verdade, incluindo login com JWT, CRUD de pets, histórico de eventos de saúde e cadastro de pet por foto usando a IA (Python), sempre através do backend.
+Nesta entrega o app deixou de usar dados 100% locais (AsyncStorage) e passou a consumir a **API Java (Spring Boot)** de verdade, incluindo login com JWT, CRUD completo de pets e de eventos de saúde (Create, Read, Update e Delete, nas duas funcionalidades), histórico com score calculado pelo backend, e cadastro de pet por foto usando IA (Python) — sempre através do backend.
+
+---
+
+## 🎥 Vídeo de Apresentação
+
+📺 **[Assista no YouTube](https://www.youtube.com/watch?v=EkIr_Zg2mhk)**
+
+O vídeo demonstra, na ordem exigida pelo enunciado:
+- Navegação entre as telas do app
+- Sistema de autenticação (cadastro, login com JWT e sessão persistida)
+- Integração com a API backend (cadastro de pet manual e via IA, edição, exclusão)
+- CRUD completo de eventos de saúde (registrar, editar e excluir), com o score recalculado em tempo real
+- Comportamento do aplicativo em uso real, rodando em dispositivo físico
 
 ---
 
@@ -63,19 +76,31 @@ POST /api/pets   (só agora o pet é salvo de verdade)
 Cadastro manual → formulário vazio → usuário preenche tudo → POST /api/pets
 ```
 
-Os dois fluxos passam pela mesma tela (`AddPet.tsx`), diferenciados por um parâmetro de rota (`mode: 'manual' | 'photo'`), acessados a partir da nova tela de escolha (`AddPetChoice.tsx`, tela "Cadastrar pet manualmente" vs "Cadastrar pet com IA").
+Os dois fluxos passam pela mesma tela (`AddPet.tsx`), diferenciados por um parâmetro de rota (`mode: 'manual' | 'photo'`), acessados a partir da tela de escolha (`AddPetChoice.tsx`).
+
+### Fluxo de CRUD de eventos de saúde
+
+```
+Registrar  → POST /api/eventos                          → score recalculado no backend
+Consultar  → GET  /api/eventos/pet/{petId}               → histórico + gráfico de evolução
+Editar     → PUT  /api/eventos/{id}    (menu do evento em PetDetails)
+Excluir    → DELETE /api/eventos/{id}  (menu do evento em PetDetails)
+```
+
+Create, Read, Update e Delete acessíveis diretamente pela interface, com cache do TanStack Query invalidado automaticamente após cada operação.
 
 ---
 
 ## ⚙️ Stack Tecnológica
 
-- **Framework:** React Native + Expo SDK 57 (atualizado nesta revisão — o app do Expo Go nas lojas só suporta a versão mais recente do SDK, então o projeto precisou acompanhar; a versão anterior estava em SDK 54)
+- **Framework:** React Native + Expo SDK 57
 - **Linguagem:** TypeScript (strict mode)
 - **Navegação:** React Navigation Stack v7, com troca de stack (auth vs. app) conforme sessão
 - **HTTP:** Axios, com interceptor que injeta `Authorization: Bearer <token>` automaticamente
-- **Cache e estado assíncrono:** TanStack Query (`useQuery`/`useMutation`) — toda leitura e escrita contra a API (pets e eventos de saúde) passa pelos hooks em `src/hooks/`, com invalidação automática de cache após criar/editar/excluir
+- **Cache e estado assíncrono:** TanStack Query (`useQuery`/`useMutation`) — toda leitura e escrita contra a API (pets e eventos de saúde) passa pelos hooks em `src/hooks/` (`usePets.ts`, `useHealthEvents.ts`), isolados da camada de UI, com invalidação automática de cache após criar/editar/excluir
 - **Autenticação:** JWT emitido pela API Java (`POST /api/tutores/login`), guardado com AsyncStorage (só o token/identidade — ver seção de limitações)
 - **Upload de imagem:** `expo-image-picker` (câmera ou galeria) + `FormData`/`multipart/form-data`
+- **Exportação de PDF:** `expo-print` + `expo-sharing` — geração da carteirinha digital do pet em PDF
 - **Ícones:** Expo Vector Icons (Ionicons)
 
 ---
@@ -98,11 +123,11 @@ Confirme em `src/main/resources/application.properties`:
 
 ### 2. Serviço de IA (Python)
 
-Não recebemos o repositório do serviço Python nesta entrega — só o Java e o mobile. Ele precisa expor, na porta que `clyvo.ai.url` aponta:
+Precisa expor, na porta que `clyvo.ai.url` aponta:
 - `POST /api/v2/pets/analyze-registration-photo` (chamado pelo Java a partir de `/api/pets/analisar-cadastro`)
 - `POST /api/v2/score/consolidado` (chamado pelo Java a partir de `/api/ia/score`)
 
-> ⚠️ **Sobre a chave de API enviada**: o arquivo `env` que veio junto com os uploads contém uma `GOOGLE_API_KEY` em texto puro. Recomendamos fortemente **revogar essa chave agora no Google AI Studio** e gerar uma nova, já que ela ficou exposta fora do `.gitignore` do repositório Python. Nunca commitem esse arquivo.
+> ⚠️ **Sobre a chave de API**: se o arquivo `.env` do serviço Python tiver uma `GOOGLE_API_KEY` em texto puro, revoguem essa chave no Google AI Studio e gerem uma nova antes de subir o repositório publicamente. Nunca commitem esse arquivo.
 
 ### 3. Mobile
 
@@ -126,7 +151,7 @@ npm start
 
 Escaneie o QR Code com o **Expo Go**, ou rode `npm run android` / `npm run ios`.
 
-**Ordem de inicialização recomendada:** Python → Java → Mobile (o Java só falha na hora de chamar `/analisar-cadastro`; as demais rotas de pets/tutores funcionam mesmo com o Python desligado).
+**Ordem de inicialização recomendada:** Python → Java → Mobile (o Java só falha na hora de chamar `/analisar-cadastro`; as demais rotas de pets/tutores/eventos funcionam mesmo com o Python desligado).
 
 ---
 
@@ -139,74 +164,87 @@ Escaneie o QR Code com o **Expo Go**, ou rode `npm run android` / `npm run ios`.
 | Cadastro de tutor | `Register` | `POST /api/tutores`, loga automaticamente depois |
 | Home | `Home` | Lista pets vindos de `GET /api/pets`, com pull-to-refresh |
 | Escolha de cadastro | `AddPetChoice` | "Cadastrar pet manualmente" vs. "Cadastrar pet com IA" |
-| Cadastrar Pet | `AddPet` | Formulário único para os dois fluxos (`mode: manual \| photo`) |
-| Detalhes do Pet | `PetDetails` | Dados de `GET /api/pets/{id}` + histórico de `GET /api/eventos/pet/{id}` |
-| Registrar Evento | `AddHealthEvent` | `POST /api/eventos` — vacina, consulta, exame, doença leve/grave, cirurgia, acidente |
-| Histórico | `History` | Gráfico de evolução e breakdown por período, a partir dos eventos reais da API |
-| Carteirinha | `Carteirinha` | Carteira digital (seções de vacina/exame/consulta seguem com dados de exemplo — não fazem parte do escopo de CRUD desta sprint) |
+| Cadastrar/Editar Pet | `AddPet` | Formulário único para criar (manual ou por foto) e editar (`mode: manual \| photo \| edit`) |
+| Detalhes do Pet | `PetDetails` | Dados de `GET /api/pets/{id}` + histórico de eventos + editar/excluir pet e eventos |
+| Registrar/Editar Evento | `AddHealthEvent` | `POST`/`PUT /api/eventos` — vacina, consulta, exame, doença leve/grave, cirurgia, acidente |
+| Histórico | `PetHistory` | Gráfico de evolução do score e breakdown por período, a partir dos eventos reais da API |
+| Carteirinha Médica | `PetMedicalScreen` | Carteira digital, com exportação em PDF |
 | Perfil | `tutorProfile` | Dados da sessão logada + logout real (limpa o JWT) |
 
 ---
 
-## 📁 Estrutura de Pastas (o que mudou)
+## 📁 Estrutura de Pastas
 
 ```
 src/
 ├── config/
-│   └── env.ts               # NOVO — IP/porta da API Java
+│   └── env.ts                 # IP/porta da API Java
+├── constants/
+│   ├── theme.ts                # Design tokens (cores)
+│   └── races.ts                # Raças suportadas por espécie
 ├── utils/
-│   └── species.ts            # NOVO — normalização única de espécie (corrige bug de ícone)
+│   ├── species.ts               # Normalização única de espécie (corrige bug de ícone)
+│   ├── dateInput.ts              # Máscara + validação real de data
+│   └── petPdf.ts                 # Geração da carteirinha em PDF
 ├── models/
-│   ├── Pet.ts                 # RENOMEADO de Pets.tsx/Pet.tsx — alinhado ao PetResponseDTO
-│   ├── HealthEvent.ts         # NOVO — TipoEvento alinhado ao enum real do backend
-│   ├── Auth.ts                # NOVO
-│   └── PetAiAnalysis.ts       # NOVO — espelha a resposta de /analisar-cadastro
-├── services/
-│   ├── api.ts                 # Axios + interceptor JWT + parser de erro do Spring
-│   ├── session.ts             # NOVO — guarda só o token/identidade (AsyncStorage)
-│   ├── authService.ts         # NOVO — login/registro/logout reais
-│   ├── petService.ts          # NOVO — CRUD real de pets + análise de foto
-│   ├── healthEventService.ts  # NOVO — CRUD real de eventos de saúde
-│   └── petExtrasStorage.ts    # NOVO — só os campos que o backend ainda não persiste
+│   ├── Pet.ts                    # Alinhado ao PetResponseDTO
+│   ├── HealthEvent.ts            # TipoEvento alinhado ao enum real do backend
+│   ├── Auth.ts
+│   └── PetAiAnalysis.ts          # Espelha a resposta de /analisar-cadastro
+├── services/                     # Camada de acesso a dados (chamadas HTTP puras)
+│   ├── api.ts                     # Axios + interceptor JWT + parser de erro do Spring
+│   ├── session.ts                 # Guarda só o token/identidade (AsyncStorage)
+│   ├── authService.ts             # Login/registro/logout reais
+│   ├── petService.ts              # CRUD real de pets + análise de foto
+│   ├── healthEventService.ts      # CRUD real de eventos de saúde (Create/Read/Update/Delete)
+│   └── petExtrasStorage.ts        # Só os campos que o backend ainda não persiste
+├── hooks/                         # TanStack Query — isolado da camada de UI
+│   ├── usePets.ts                  # useQuery/useMutation de pets + análise por IA
+│   └── useHealthEvents.ts          # useQuery/useMutation de eventos de saúde
 ├── contexts/
 │   ├── ThemeContext.tsx
-│   └── AuthContext.tsx        # NOVO — sessão do tutor disponível em todo o app
-└── screens/
-    ├── Login.tsx               # NOVO
-    ├── Register.tsx            # NOVO
-    ├── AddPetChoice.tsx         # NOVO
-    └── (demais telas migradas de AsyncStorage para os services acima)
+│   └── AuthContext.tsx             # Sessão do tutor disponível em todo o app
+├── components/                     # Componentes reutilizáveis de UI
+│   ├── PetCard.tsx
+│   ├── PetIdentityCard.tsx
+│   ├── WalletHeader.tsx
+│   ├── FactorBar.tsx
+│   ├── NotesSection.tsx
+│   ├── PlansSection.tsx
+│   ├── PlanDetailsModal.tsx
+│   ├── ScoreInfoModal.tsx
+│   └── BottomBarTab.tsx
+├── navigation/
+│   ├── AppNavigator.tsx             # Rotas + troca de stack por sessão
+│   └── types.ts
+└── screens/                         # Telas — só consomem os hooks acima
 ```
 
-`storage.ts` (o AsyncStorage antigo com pets/eventos) foi **removido** — toda a lógica de pets e eventos agora vive nos services acima, contra a API real.
+Camadas separadas de propósito: **telas** não chamam API diretamente, apenas os **hooks**; os **hooks** não sabem de UI, apenas orquestram cache; os **services** só sabem fazer requisições HTTP. Nenhuma lógica de negócio ou chamada HTTP fica dentro de componente de tela.
 
 ---
 
-## 🐛 Bugs corrigidos nesta sprint
+## 🐛 Bugs corrigidos ao longo da sprint
 
-1. **Import quebrado do modelo `Pet`** — `storage.ts` importava de `@models/Pets` (plural) mas o arquivo real era `src/models/Pet.tsx` (singular). Esse é o tipo de erro que quebra o bundler silenciosamente dependendo de cache do Metro. Consolidado em um único `src/models/Pet.ts`.
-2. **Ícone de raça errado em "Outros" (aves, roedores...)** — cada tela (`PetCard`, `PetHistory`, etc.) tinha sua própria lógica ad-hoc pra decidir se um pet era `dog`/`cat`/`other` a partir de strings em português/inglês vindas de fontes diferentes. Bastava uma variação de acentuação ou fonte de dado pra cair no emoji errado. Centralizado em `src/utils/species.ts` (`normalizeSpecies`), usado por todo o app — inclusive pelas sugestões que virão da IA (`especie: "Cao"`).
-3. **Histórico de saúde incompatível com o backend** — o enum local de eventos tinha `VERMIFUGO` e `EMERGENCIA`, que **não existem** no `TipoEvento.java` do backend (que tem `DOENCA_LEVE`, `DOENCA_GRAVE`, `ACIDENTE`). Isso não dava erro no app antigo porque tudo era local, mas quebraria (400 do Spring) assim que integrado de verdade. Corrigido em `src/models/HealthEvent.ts`, com os 7 valores reais e o impacto de score de cada um espelhando `TipoEvento.java`.
-4. **Score de cada evento no histórico sempre "0" (ou um valor sem sentido)** — o backend (`EventoSaudeService.buscarEventosPorPet`) devolve `evento.getPet().getHealthScore()` — o score **atual** do pet — repetido em todos os eventos da lista, porque a entidade `EventoSaude` não guarda o score resultante de cada evento no momento em que ele foi criado. Isso não tem conserto possível só no mobile (a informação histórica simplesmente não existe na resposta da API). Solução aplicada: o app mostra o impacto fixo de cada categoria (`TipoEvento.java`: Vacina +10, Consulta +5, Exame +5, Doença leve -15, Cirurgia -30, Doença grave -40, Acidente -50) em vez de tentar reconstruir uma diferença que a API não sustenta. A correção definitiva fica documentada abaixo, no backend.
-5. **Data inválida podendo ser enviada pro backend** (`dataEvento: "2026-89-01"` → 400 do Spring, "Invalid value for MonthOfYear: 89") — o campo de data deixava passar edição no meio do texto sem revalidar os dígitos. Corrigido com uma máscara + validação de calendário de verdade em `src/utils/dateInput.ts`, usada tanto no cadastro de pet (data de nascimento) quanto no registro de evento de saúde.
+1. **Import quebrado do modelo `Pet`** — consolidado em um único `src/models/Pet.ts`.
+2. **Ícone de raça errado em "Outros"** — centralizado em `src/utils/species.ts` (`normalizeSpecies`), usado por todo o app, inclusive pelas sugestões da IA.
+3. **Histórico de saúde incompatível com o backend** — o enum local tinha valores (`VERMIFUGO`, `EMERGENCIA`) que não existem no `TipoEvento.java` real. Corrigido em `src/models/HealthEvent.ts`, com os 7 valores reais e o impacto de score de cada um espelhando o backend.
+4. **Data inválida podendo ser enviada pro backend** (`dataEvento: "2026-89-01"` → 400 do Spring) — corrigido com máscara + validação de calendário real em `src/utils/dateInput.ts`.
+5. **CRUD de eventos de saúde incompleto** — o backend só expunha `POST` e `GET`; os endpoints `PUT`/`DELETE` de `/api/eventos/{id}` foram implementados no `EventoSaudeController`, e o mobile já tinha o client (`healthEventService.ts`) e a UI (menu do evento em `PetDetails.tsx`) prontos esperando por eles. Editar e excluir evento de saúde agora funcionam de ponta a ponta.
 
 ---
 
-## ⚠️ Limitações conhecidas (leiam antes de avaliar)
+## ⚠️ Limitações conhecidas
 
-- **Backend só persiste `nome, especie, raca, idade, peso, healthScore`.** A entidade `Pet` do Java (`br.com.fiap.clyvo.model.Pet`) não tem colunas para foto, cor, porte, condição corporal, data de nascimento, sexo, castração, microchip ou observações — campos que a tela pede (e que a IA devolve). Enquanto o backend não expõe isso, esses campos ficam guardados **localmente por `id` do pet** (`petExtrasStorage.ts`), só para completar a experiência visual da tela. **Nome, espécie, raça, idade, peso e score sempre vêm/vão pela API de verdade** — isso não é "fingir integração", é uma limitação documentada do schema atual. Se o time quiser, o próximo passo natural é o pessoal do Java adicionar essas colunas e o app passa a mandar tudo pra API.
-- **Rota do backend inconsistente:** `SecurityConfig.java` protege `/api/eventos-saude/**`, mas o `EventoSaudeController` está mapeado em `/api/eventos`. Isso não impede o app de funcionar (a rota real cai na regra genérica `.anyRequest().authenticated()`, que já exige um JWT válido de qualquer perfil), mas vale o time do Java ajustar o path do `SecurityConfig` para exigir explicitamente `TUTOR`/`VETERINARIO` nessa rota também.
-- **`EventoSaude` não persiste o score histórico de cada evento** — precisa de uma migration nova adicionando `novo_health_score` em `tb_evento_saude`, preenchida em `EventoSaudeService.cadastrarEvento` e usada (em vez de `evento.getPet().getHealthScore()`) em `buscarEventosPorPet`. Sem isso, o histórico de score por evento nunca vai refletir o valor real de cada momento — ver "Bugs corrigidos" acima.
-- **Excluir um pet com eventos de saúde falha com `ORA-02292`** (violação de FK) — falta `cascade = CascadeType.ALL, orphanRemoval = true` na relação `Pet → EventoSaude` (ou `ON DELETE CASCADE` na constraint do banco).
-- **Editar e excluir evento de saúde estão implementados no mobile, mas dependem do backend** — `healthEventService.ts` já chama `PUT /api/eventos/{id}` e `DELETE /api/eventos/{id}` (com os hooks `useUpdateHealthEvent`/`useDeleteHealthEvent`), seguindo a mesma convenção REST usada em `/api/pets/{id}`. O `EventoSaudeController` atual só expõe `POST` e `GET /pet/{petId}` — falta adicionar os métodos `PUT`/`DELETE` (patch pronto, é só pedir). Até lá, o botão de excluir evento na tela de detalhes do pet mostra uma mensagem de erro tratada em vez de travar o app.
-- **Vídeo de apresentação:** não temos como gravar/publicar vídeo por aqui. As instruções acima (rodar Python → Java → Mobile, telas envolvidas) servem de roteiro para a gravação exigida no critério "Vídeo de apresentação do aplicativo (15 pontos)".
-- Não recebemos o repositório do serviço Python nesta entrega, então não foi possível testar o fluxo de `/analisar-cadastro` ponta a ponta — só o contrato (request/response) documentado no enunciado foi validado contra o código Java real (`ClyvoAiService.java`, `PetRegistrationAiResponseDTO.java`).
+- **Backend só persiste `nome, especie, raca, idade, peso, healthScore`** na entidade `Pet`. Campos como foto, cor, porte, condição corporal, sexo, castração e microchip — que a tela pede e a IA devolve — ficam guardados **localmente por `id` do pet** (`petExtrasStorage.ts`), só para completar a experiência visual. **Nome, espécie, raça, idade, peso e score sempre vêm/vão pela API real.** Não é "fingir integração", é uma limitação documentada do schema atual do banco.
+- **`EventoSaude` ainda não persiste o score histórico de cada evento** — o backend devolve o score *atual* do pet repetido em todos os eventos da lista, em vez do score no momento em que cada evento aconteceu. O app contorna isso mostrando o impacto fixo de cada categoria (Vacina +10, Consulta +5, Exame +5, Doença leve −15, Cirurgia −30, Doença grave −40, Acidente −50) em vez de reconstruir um histórico que a API não sustenta.
+- Não recebemos o repositório do serviço Python nesta entrega — só o contrato (request/response) foi validado contra o código Java real (`ClyvoAiService.java`, `PetRegistrationAiResponseDTO.java`).
 
 ---
 
 ## 🧠 Score de Saúde (0–100)
 
-Calculado pelo **backend** a cada evento (`TipoEvento.calcularNovoScore`), não mais localmente:
+Calculado pelo **backend** a cada evento (`TipoEvento.calcularNovoScore`), não localmente:
 
 | Evento | Impacto |
 |---|---|
@@ -229,9 +267,11 @@ Calculado pelo **backend** a cada evento (`TipoEvento.calcularNovoScore`), não 
 ## 🔐 Autenticação
 
 - `POST /api/tutores` — cria a conta do tutor.
-- `POST /api/tutores/login` — devolve `{ id, nome, email, perfil, token }`; o `token` (JWT RS256) é salvo via `sessionStorage.ts` e reenviado em todo request subsequente pelo interceptor do Axios (`api.ts`).
+- `POST /api/tutores/login` — devolve `{ id, nome, email, perfil, token }`; o `token` (JWT) é salvo via `session.ts` e reenviado em todo request subsequente pelo interceptor do Axios (`api.ts`).
 - Rotas de `/api/pets/**` e `/api/eventos/**` exigem `ROLE_TUTOR` ou `ROLE_VETERINARIO` — o app assume perfil de tutor.
-- Logout limpa o token local; não existe endpoint de logout no backend (JWT stateless), então é só descartar o token do dispositivo mesmo.
+- Sessão persistida: o usuário não precisa autenticar de novo ao reabrir o app.
+- Telas protegidas: o `AppNavigator` só monta o stack interno quando há sessão válida — não é possível acessar telas internas por navegação direta sem login.
+- Logout limpa o token local e volta pro fluxo de autenticação; não existe endpoint de logout no backend (JWT stateless), então é só descartar o token do dispositivo mesmo.
 
 ---
 
@@ -250,10 +290,10 @@ Se a IA sugerir uma raça fora dessa lista fixa, o app cai automaticamente no mo
 | Requisito | Status | Onde |
 |---|---|---|
 | Navegação entre telas (5 pts) | ✅ | 11 rotas, `AppNavigator.tsx`, com troca de stack por sessão |
-| Integração com API Backend HTTP (35 pts) | ✅ | `petService.ts`, `healthEventService.ts`, `authService.ts` — todas as chamadas reais, com loading state e tratamento de erro |
-| Sistema de autenticação — Login (20 pts) | ✅ | JWT real via `/api/tutores/login`, sessão persistida, rotas protegidas (stack condicional) |
-| Arquitetura e organização do código (20 pts) | ✅ | Camadas separadas: `screens` (UI) / `services` (API) / `models` (tipos) / `contexts` (estado global) / `utils` (regras compartilhadas) |
-| Documentação e apresentação (20 pts) | ⚠️ Parcial | README completo nesta seção; **vídeo ainda precisa ser gravado pelo time** |
+| Integração com API Backend HTTP (35 pts) | ✅ | TanStack Query (`src/hooks/`) sobre `petService.ts`/`healthEventService.ts`/`authService.ts` — CRUD completo de pets e eventos, com loading state e tratamento de erro |
+| Sistema de autenticação — Login (20 pts) | ✅ | JWT real via `/api/tutores/login`, sessão persistida, rotas protegidas (stack condicional), logout funcional |
+| Arquitetura e organização do código (20 pts) | ✅ | Camadas separadas: `screens` (UI) / `hooks` (TanStack Query) / `services` (API) / `models` (tipos) / `contexts` (estado global) / `utils` (regras compartilhadas) |
+| Documentação e apresentação (20 pts) | ✅ | Este README + vídeo de apresentação publicado no YouTube (link no topo deste documento) |
 
 ---
 
@@ -280,6 +320,7 @@ COLORS = {
 @components/*  → src/components/*
 @screens/*     → src/screens/*
 @services/*    → src/services/*
+@hooks/*       → src/hooks/*
 @models/*      → src/models/*
 @constants/*   → src/constants/*
 @navigation/*  → src/navigation/*
