@@ -52,8 +52,12 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           text: 'Remover',
           style: 'destructive',
           onPress: () => {
+            if (deletePetMutation.isPending) return;
             deletePetMutation.mutate(petId, {
-              onError: (err: any) => Alert.alert('Erro', err.message),
+              onError: (err: any) => {
+                if (err.message?.toLowerCase().includes('não encontrado')) return;
+                Alert.alert('Erro', err.message);
+              },
             });
           },
         },

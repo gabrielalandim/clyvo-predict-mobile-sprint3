@@ -95,13 +95,17 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
           text: 'Sim, Deletar',
           style: 'destructive',
           onPress: () => {
+            if (deletePetMutation.isPending) return;
             deletePetMutation.mutate(pet.id, {
               onSuccess: () => {
                 Alert.alert('Sucesso', 'Pet removido com sucesso!', [
                   { text: 'OK', onPress: () => navigation.navigate('Home') },
                 ]);
               },
-              onError: (error: any) => Alert.alert('Erro', error.message),
+              onError: (error: any) => {
+                if (error.message?.toLowerCase().includes('não encontrado')) return;
+                Alert.alert('Erro', error.message);
+              },
             });
           },
         },
@@ -135,9 +139,15 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
               text: 'Sim, excluir',
               style: 'destructive',
               onPress: () => {
+                if (deleteEventMutation.isPending) return;
                 deleteEventMutation.mutate(
                   { id: evt.id, petId },
-                  { onError: (error: any) => Alert.alert('Erro', error.message) },
+                  {
+                    onError: (error: any) => {
+                      if (error.message?.toLowerCase().includes('não encontrado')) return;
+                      Alert.alert('Erro', error.message);
+                    },
+                  },
                 );
               },
             },
