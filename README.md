@@ -93,7 +93,7 @@ Create, Read, Update e Delete acessíveis diretamente pela interface, com cache 
 
 ## ⚙️ Stack Tecnológica
 
-- **Framework:** React Native + Expo SDK 57
+- **Framework:** React Native + Expo SDK 58
 - **Linguagem:** TypeScript (strict mode)
 - **Navegação:** React Navigation Stack v7, com troca de stack (auth vs. app) conforme sessão
 - **HTTP:** Axios, com interceptor que injeta `Authorization: Bearer <token>` automaticamente

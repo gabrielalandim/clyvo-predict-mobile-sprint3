@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json.schemastore.org/expo-57.0.0.json",
+  "$schema": "https://json.schemastore.org/expo-58.0.0.json",
   "expo": {
     "name": "ClyvoPredict",
     "slug": "ClyvoPredict",

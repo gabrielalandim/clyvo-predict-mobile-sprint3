@@ -3,37 +3,36 @@
   "compilerOptions": {
     "strict": true,
     "jsx": "react-native",
-    "baseUrl": "./",
     "paths": {
       "@components/*": [
-        "src/components/*"
+        "./src/components/*"
       ],
       "@screens/*": [
-        "src/screens/*"
+        "./src/screens/*"
       ],
       "@services/*": [
-        "src/services/*"
+        "./src/services/*"
       ],
       "@models/*": [
-        "src/models/*"
+        "./src/models/*"
       ],
       "@constants/*": [
-        "src/constants/*"
+        "./src/constants/*"
       ],
       "@navigation/*": [
-        "src/navigation/*"
+        "./src/navigation/*"
       ],
       "@contexts/*": [
-        "src/contexts/*"
+        "./src/contexts/*"
       ],
       "@config/*": [
-        "src/config/*"
+        "./src/config/*"
       ],
       "@utils/*": [
-        "src/utils/*"
+        "./src/utils/*"
       ],
       "@hooks/*": [
-        "src/hooks/*"
+        "./src/hooks/*"
       ]
     }
   }

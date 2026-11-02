@@ -102,7 +102,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.flexGrow}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[COLORS.primary]} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => { refetch(); }} colors={[COLORS.primary]} />}
         renderItem={({ item }) => (
           <PetCard
             item={item}
