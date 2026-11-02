@@ -8,7 +8,7 @@ import { FactorBar } from '@components/FactorBar';
 import { ScoreInfoModal } from '@components/ScoreInfoModal';
 import { NotesSection } from '@components/NotesSection';
 import { Ionicons } from '@expo/vector-icons';
-import { getEventTypeConfig } from '@models/HealthEvent';
+import { getEventTypeConfig, isPreventiveEvent } from '@models/HealthEvent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@contexts/ThemeContext';
 import { usePet, useDeletePet } from '@hooks/usePets';
@@ -236,7 +236,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
               percentage={
                 events.length > 0
                   ? Math.round(
-                      (events.filter((e) => ['VACINA', 'EXAME', 'CONSULTA_ROTINA'].includes(e.tipoEvento)).length /
+                      (events.filter((e) => isPreventiveEvent(e.tipoEvento)).length /
                         events.length) *
                         100,
                     )

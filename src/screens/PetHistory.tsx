@@ -13,7 +13,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { COLORS, SPACING, FONT_SIZES, getScoreColor } from '../constants/theme';
 import { SPECIES_CONFIG } from '../constants/races';
-import { getEventTypeConfig, HealthEvent } from '@models/HealthEvent';
+import { getEventTypeConfig, HealthEvent, isPreventiveEvent } from '@models/HealthEvent';
 import { BottomTabBar } from '../components/BottomBarTab';
 import { useTheme } from '@contexts/ThemeContext';
 import { usePets } from '@hooks/usePets';
@@ -121,7 +121,7 @@ export default function HistoryScreen({ navigation }: Props) {
       {
         label: 'Ocorrências',
         icon: '⚠️',
-        count: countByType('DOENCA_LEVE') + countByType('DOENCA_GRAVE') + countByType('ACIDENTE'),
+        count: filteredEvents.filter((e) => !isPreventiveEvent(e.tipoEvento)).length,
       },
     ];
     const total = filteredEvents.length;
