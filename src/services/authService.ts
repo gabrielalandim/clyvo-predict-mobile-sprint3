@@ -1,6 +1,7 @@
 import { api, extractApiErrorMessage } from './api';
 import { sessionStorage } from '@storage/sessionStorage';
 import { TutorAuthResponseDTO, TutorSession } from '@models/Auth';
+import { isTokenExpired } from '@utils/jwt';
 export interface RegisterPayload {
   nome: string;
   email: string;
@@ -28,7 +29,12 @@ export const authService = {
   async logout(): Promise<void> {
     await sessionStorage.clearSession();
   },
-  async getSession() {
-    return sessionStorage.getSession();
+  async getSession(): Promise<TutorSession | null> {
+    const session = await sessionStorage.getSession();
+    if (session && isTokenExpired(session.token)) {
+      await sessionStorage.clearSession();
+      return null;
+    }
+    return session;
   },
 };
