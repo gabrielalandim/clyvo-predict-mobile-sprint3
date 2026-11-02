@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -13,10 +13,9 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES } from '@constants/theme';
-import { EVENT_TYPES, TipoEvento } from '@models/HealthEvent';
-import { maskDateInput, isValidDateInput, toIsoDate, fromIsoDate } from '@utils/dateInput';
+import { EVENT_TYPES } from '@models/HealthEvent';
 import { Ionicons } from '@expo/vector-icons';
-import { useCreateHealthEvent, useUpdateHealthEvent } from '@hooks/useHealthEvents';
+import { useHealthEventForm } from '@hooks/useHealthEventForm';
 import { useThemedStyles } from '@hooks/useThemedStyles';
 type AddHealthEventNavigationProp = StackNavigationProp<RootStackParamList, 'AddHealthEvent'>;
 type AddHealthEventRouteProp = RouteProp<RootStackParamList, 'AddHealthEvent'>;
@@ -27,45 +26,16 @@ interface Props {
 const AddHealthEventScreen: React.FC<Props> = ({ navigation, route }) => {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const { petId, editEvent } = route.params;
-  const [descricao, setDescricao] = useState(editEvent?.descricao ?? '');
-  const [tipo, setTipo] = useState<TipoEvento>(editEvent?.tipoEvento ?? 'VACINA');
-  const [dataTexto, setDataTexto] = useState(editEvent ? fromIsoDate(editEvent.dataEvento) : '');
-  const createEventMutation = useCreateHealthEvent();
-  const updateEventMutation = useUpdateHealthEvent();
-  const isSaving = createEventMutation.isPending || updateEventMutation.isPending;
-  const handleDateChange = (text: string) => {
-    setDataTexto(maskDateInput(text));
-  };
-  const handleSubmit = () => {
-    if (!descricao.trim() || !isValidDateInput(dataTexto)) {
-      Alert.alert('Erro', 'Preencha a descrição e uma data válida (dd/mm/aaaa).');
+  const { isEditing, descricao, setDescricao, tipo, setTipo, dataTexto, setDataTexto, isSaving, submit } =
+    useHealthEventForm(petId, editEvent);
+
+  const handleSubmit = async () => {
+    const result = await submit();
+    if (!result.ok) {
+      Alert.alert(result.title, result.message);
       return;
     }
-    if (editEvent) {
-      updateEventMutation.mutate(
-        { id: editEvent.id, petId, tipoEvento: tipo, descricao: descricao.trim(), dataEvento: toIsoDate(dataTexto) },
-        {
-          onSuccess: () => {
-            Alert.alert('Sucesso!', 'Evento atualizado.', [
-              { text: 'Perfeito', onPress: () => navigation.navigate('Home') },
-            ]);
-          },
-          onError: (error: any) => Alert.alert('Erro', error.message),
-        },
-      );
-    } else {
-      createEventMutation.mutate(
-        { petId, tipoEvento: tipo, descricao: descricao.trim(), dataEvento: toIsoDate(dataTexto) },
-        {
-          onSuccess: () => {
-            Alert.alert('Sucesso!', 'Evento salvo e o score do pet foi atualizado.', [
-              { text: 'Perfeito', onPress: () => navigation.navigate('Home') },
-            ]);
-          },
-          onError: (error: any) => Alert.alert('Erro', error.message),
-        },
-      );
-    }
+    Alert.alert('Sucesso!', result.message, [{ text: 'Perfeito', onPress: () => navigation.goBack() }]);
   };
   return (
     <View style={styles.container}>
@@ -73,7 +43,7 @@ const AddHealthEventScreen: React.FC<Props> = ({ navigation, route }) => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={28} color={COLORS.white} />
         </TouchableOpacity>
-        <Text style={styles.title}>{editEvent ? 'Editar Evento' : 'Registrar Evento'}</Text>
+        <Text style={styles.title}>{isEditing ? 'Editar Evento' : 'Registrar Evento'}</Text>
         <View style={{ width: 28 }} />
       </View>
 
@@ -95,7 +65,7 @@ const AddHealthEventScreen: React.FC<Props> = ({ navigation, route }) => {
           keyboardType="numeric"
           maxLength={10}
           value={dataTexto}
-          onChangeText={handleDateChange}
+          onChangeText={setDataTexto}
         />
 
         <Text style={styles.label}>Categoria do Evento *</Text>
@@ -137,7 +107,7 @@ const AddHealthEventScreen: React.FC<Props> = ({ navigation, route }) => {
           {isSaving ? (
             <ActivityIndicator color={COLORS.white} />
           ) : (
-            <Text style={styles.submitButtonText}>{editEvent ? 'Salvar Alterações' : 'Salvar Evento'}</Text>
+            <Text style={styles.submitButtonText}>{isEditing ? 'Salvar Alterações' : 'Salvar Evento'}</Text>
           )}
         </TouchableOpacity>
       </View>

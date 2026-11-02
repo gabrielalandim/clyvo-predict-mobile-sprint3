@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -17,7 +16,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomTabBar } from '@components/BottomTabBar';
 import { PlansSection } from '@components/PlansSection';
 import { PetCard } from '@components/PetCard';
-import { usePets, useDeletePet } from '@hooks/usePets';
+import { usePets } from '@hooks/usePets';
+import { useConfirmDeletePet } from '@hooks/useDeleteConfirmations';
 import { useThemedStyles } from '@hooks/useThemedStyles';
 import { useErrorAlert } from '@hooks/useErrorAlert';
 import { useRefetchOnFocus } from '@hooks/useRefetchOnFocus';
@@ -30,34 +30,12 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const { session } = useAuth();
 
   const { data: pets = [], isLoading, isRefetching, error, refetch } = usePets();
-  const deletePetMutation = useDeletePet();
+  const confirmDeletePet = useConfirmDeletePet();
 
   useRefetchOnFocus(refetch);
 
   useErrorAlert(error, 'Erro ao carregar pets');
 
-  const handleDeletePet = (petId: string) => {
-    Alert.alert(
-      'Remover Pet',
-      'Tem certeza absoluta de que deseja remover este pet? Essa ação não poderá ser desfeita.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: () => {
-            if (deletePetMutation.isPending) return;
-            deletePetMutation.mutate(petId, {
-              onError: (err: any) => {
-                if (err.message?.toLowerCase().includes('não encontrado')) return;
-                Alert.alert('Erro', err.message);
-              },
-            });
-          },
-        },
-      ],
-    );
-  };
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -102,7 +80,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             item={item}
             onPressDetails={() => navigation.navigate('PetDetails', { petId: item.id.toString() })}
             onPressRegisterEvent={() => navigation.navigate('AddHealthEvent', { petId: item.id.toString() })}
-            onPressDelete={() => handleDeletePet(item.id)}
+            onPressDelete={() => confirmDeletePet(item)}
           />
         )}
         ListEmptyComponent={

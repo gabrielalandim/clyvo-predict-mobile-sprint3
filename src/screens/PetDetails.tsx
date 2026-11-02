@@ -13,8 +13,9 @@ import { getScoreStatus } from '@utils/score';
 import { formatIsoDateBR, formatYears } from '@utils/date';
 import { preventivePercentage } from '@utils/healthEvents';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { usePet, useDeletePet } from '@hooks/usePets';
-import { useHealthEvents, useDeleteHealthEvent } from '@hooks/useHealthEvents';
+import { usePet } from '@hooks/usePets';
+import { useHealthEvents } from '@hooks/useHealthEvents';
+import { useConfirmDeletePet, useConfirmDeleteHealthEvent } from '@hooks/useDeleteConfirmations';
 import { useThemedStyles } from '@hooks/useThemedStyles';
 import { useErrorAlert } from '@hooks/useErrorAlert';
 
@@ -35,8 +36,8 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const { data: pet, isLoading: petLoading, error: petError, refetch: refetchPet } = usePet(petId);
   const { data: events = [], error: eventsError, refetch: refetchEvents } = useHealthEvents(petId);
-  const deletePetMutation = useDeletePet();
-  const deleteEventMutation = useDeleteHealthEvent();
+  const confirmDeletePet = useConfirmDeletePet();
+  const confirmDeleteEvent = useConfirmDeleteHealthEvent(petId);
 
   const [anotacoesList, setAnotacoesList] = useState<AnotacaoData[]>([]);
   const [infoModalVisible, setInfoModalVisible] = useState(false);
@@ -85,31 +86,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleConfirmDelete = () => {
     if (!pet) return;
-    Alert.alert(
-      'Confirmar Exclusão',
-      `Tem certeza que deseja deletar o(a) ${pet.name}? Isso apagará todos os registros definitivamente.`,
-      [
-        { text: 'Não', style: 'cancel' },
-        {
-          text: 'Sim, Deletar',
-          style: 'destructive',
-          onPress: () => {
-            if (deletePetMutation.isPending) return;
-            deletePetMutation.mutate(pet.id, {
-              onSuccess: () => {
-                Alert.alert('Sucesso', 'Pet removido com sucesso!', [
-                  { text: 'OK', onPress: () => navigation.navigate('Home') },
-                ]);
-              },
-              onError: (error: any) => {
-                if (error.message?.toLowerCase().includes('não encontrado')) return;
-                Alert.alert('Erro', error.message);
-              },
-            });
-          },
-        },
-      ],
-    );
+    confirmDeletePet(pet, () => navigation.navigate('Home'));
   };
 
   const handleOpenEventMenu = (evt: (typeof events)[number]) => {
@@ -131,27 +108,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
       {
         text: 'Excluir',
         style: 'destructive',
-        onPress: () => {
-          Alert.alert('Confirmar exclusão', 'Tem certeza que quer excluir esse evento?', [
-            { text: 'Não', style: 'cancel' },
-            {
-              text: 'Sim, excluir',
-              style: 'destructive',
-              onPress: () => {
-                if (deleteEventMutation.isPending) return;
-                deleteEventMutation.mutate(
-                  { id: evt.id, petId },
-                  {
-                    onError: (error: any) => {
-                      if (error.message?.toLowerCase().includes('não encontrado')) return;
-                      Alert.alert('Erro', error.message);
-                    },
-                  },
-                );
-              },
-            },
-          ]);
-        },
+        onPress: () => confirmDeleteEvent(evt.id),
       },
       { text: 'Cancelar', style: 'cancel' },
     ]);
@@ -275,7 +232,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
                 </TouchableOpacity>
               ))
             )}
-            {events.length > 0 && <Text style={styles.hintText}>Segure um evento pra excluir.</Text>}
+            {events.length > 0 && <Text style={styles.hintText}>Segure um evento para editar ou excluir.</Text>}
           </View>
 
           <TouchableOpacity

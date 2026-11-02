@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { RACES_BY_SPECIES, Species } from '@constants/races';
 import { Pet, PetFormData } from '@models/Pet';
+import { FormResult } from '@models/FormResult';
 import { normalizeSpecies } from '@utils/species';
 import { isValidDateInput, maskDateInput } from '@utils/dateInput';
 import { usePet, useCreatePet, useUpdatePet, useAnalisarCadastro } from './usePets';
@@ -13,10 +14,6 @@ export interface PetFormErrors {
   age?: boolean;
   weight?: boolean;
 }
-
-export type FormResult<T = undefined> =
-  | { ok: true; data: T; message?: string }
-  | { ok: false; title: string; message: string };
 
 const MAX_WEIGHT_KG = 150;
 
