@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Text,
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -13,34 +12,15 @@ import {
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES } from '@constants/theme';
-import { useAuth } from '@contexts/AuthContext';
+import { useRegisterForm } from '@hooks/useRegisterForm';
 import { useThemedStyles } from '@hooks/useThemedStyles';
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Register'>;
 };
 const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
-  const { register, login } = useAuth();
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [senha, setSenha] = useState('');
-  const [loading, setLoading] = useState(false);
-  const handleRegister = async () => {
-    if (!nome.trim() || !email.trim() || !telefone.trim() || !senha) {
-      Alert.alert('Erro', 'Preencha todos os campos.');
-      return;
-    }
-    setLoading(true);
-    try {
-      await register({ nome: nome.trim(), email: email.trim(), telefone: telefone.trim(), senha });
-      await login(email.trim(), senha);
-    } catch (error: any) {
-      Alert.alert('Não foi possível cadastrar', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { nome, setNome, email, setEmail, telefone, setTelefone, senha, setSenha, loading, error, submit } =
+    useRegisterForm();
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
@@ -80,14 +60,16 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={styles.label}>Senha</Text>
         <TextInput
           style={styles.input}
-          placeholder="Crie uma senha"
+          placeholder="Mínimo de 6 caracteres"
           placeholderTextColor={COLORS.textSecondary}
           secureTextEntry
           value={senha}
           onChangeText={setSenha}
         />
 
-        <TouchableOpacity style={styles.primaryButton} onPress={handleRegister} disabled={loading}>
+        {error && <Text style={styles.errorText}>{error}</Text>}
+
+        <TouchableOpacity style={styles.primaryButton} onPress={submit} disabled={loading}>
           {loading ? (
             <ActivityIndicator color={COLORS.white} />
           ) : (
@@ -132,6 +114,7 @@ const makeStyles = (COLORS: any) =>
       marginTop: SPACING.xxl,
     },
     primaryButtonText: { color: COLORS.white, fontSize: FONT_SIZES.lg, fontWeight: '700' },
+    errorText: { color: COLORS.accent, fontSize: FONT_SIZES.sm, marginTop: SPACING.md, fontWeight: '600' },
     linkButton: { marginTop: SPACING.lg, alignItems: 'center' },
     linkText: { color: COLORS.primary, fontWeight: '600' },
   });

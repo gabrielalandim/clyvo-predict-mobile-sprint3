@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Text,
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -13,31 +12,14 @@ import {
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES } from '@constants/theme';
-import { useAuth } from '@contexts/AuthContext';
+import { useLoginForm } from '@hooks/useLoginForm';
 import { useThemedStyles } from '@hooks/useThemedStyles';
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Login'>;
 };
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
-  const { login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [loading, setLoading] = useState(false);
-  const handleLogin = async () => {
-    if (!email.trim() || !senha) {
-      Alert.alert('Erro', 'Preencha e-mail e senha.');
-      return;
-    }
-    setLoading(true);
-    try {
-      await login(email.trim(), senha);
-    } catch (error: any) {
-      Alert.alert('Não foi possível entrar', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { email, setEmail, senha, setSenha, loading, error, submit } = useLoginForm();
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
@@ -66,7 +48,9 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
           onChangeText={setSenha}
         />
 
-        <TouchableOpacity style={styles.primaryButton} onPress={handleLogin} disabled={loading}>
+        {error && <Text style={styles.errorText}>{error}</Text>}
+
+        <TouchableOpacity style={styles.primaryButton} onPress={submit} disabled={loading}>
           {loading ? <ActivityIndicator color={COLORS.white} /> : <Text style={styles.primaryButtonText}>Entrar</Text>}
         </TouchableOpacity>
 
@@ -115,6 +99,7 @@ const makeStyles = (COLORS: any) =>
       marginTop: SPACING.xxl,
     },
     primaryButtonText: { color: COLORS.white, fontSize: FONT_SIZES.lg, fontWeight: '700' },
+    errorText: { color: COLORS.accent, fontSize: FONT_SIZES.sm, marginTop: SPACING.md, fontWeight: '600' },
     linkButton: { marginTop: SPACING.lg, alignItems: 'center' },
     linkText: { color: COLORS.primary, fontWeight: '600' },
   });
