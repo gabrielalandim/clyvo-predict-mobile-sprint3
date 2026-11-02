@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PetLocalExtras } from '@models/Pet';
 const EXTRAS_KEY = '@clyvo:pet_extras';
-const NOTES_KEY_PREFIX = '@pet_notes_';
 async function getAllExtras(): Promise<Record<string, PetLocalExtras>> {
   try {
     const raw = await AsyncStorage.getItem(EXTRAS_KEY);
@@ -24,6 +23,5 @@ export const petExtrasStorage = {
     const all = await getAllExtras();
     delete all[petId];
     await AsyncStorage.setItem(EXTRAS_KEY, JSON.stringify(all));
-    await AsyncStorage.removeItem(`${NOTES_KEY_PREFIX}${petId}`);
   },
 };

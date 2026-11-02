@@ -1,50 +1,24 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { SPACING, FONT_SIZES } from '@constants/theme';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useThemedStyles } from '@hooks/useThemedStyles';
-interface AnotacaoData {
-  id: number;
-  texto: string;
-  dataCriacao?: string;
-}
+import { PetNote } from '@models/PetNote';
 interface NotesSectionProps {
-  petId: number;
-  anotacoesList: AnotacaoData[];
-  onSaveSuccess: () => void;
-  onDeleteSuccess?: () => void;
+  notes: PetNote[];
+  saving: boolean;
+  onAdd: (texto: string) => Promise<unknown>;
+  onRemove: (noteId: number) => Promise<unknown>;
 }
-export const NotesSection: React.FC<NotesSectionProps> = ({ petId, anotacoesList, onSaveSuccess, onDeleteSuccess }) => {
+export const NotesSection: React.FC<NotesSectionProps> = ({ notes, saving, onAdd, onRemove }) => {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const [anotacao, setAnotacao] = useState('');
-  const [savingNote, setSavingNote] = useState(false);
   const handleSaveNote = async () => {
     if (!anotacao.trim()) return;
-    setSavingNote(true);
     try {
-      const key = `@pet_notes_${petId}`;
-      const currentNotesRaw = await AsyncStorage.getItem(key);
-      const currentNotes: AnotacaoData[] = currentNotesRaw ? JSON.parse(currentNotesRaw) : [];
-      const newNote: AnotacaoData = {
-        id: Date.now(),
-        texto: anotacao.trim(),
-        dataCriacao: new Date().toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      };
-      const updatedNotes = [newNote, ...currentNotes];
-      await AsyncStorage.setItem(key, JSON.stringify(updatedNotes));
-      Alert.alert('Sucesso!', 'Anotação salva com sucesso.');
+      await onAdd(anotacao);
       setAnotacao('');
-      onSaveSuccess();
-    } catch (error) {
-      Alert.alert('Erro', 'Não foi possível salvar a anotação localmente.');
-    } finally {
-      setSavingNote(false);
+    } catch {
+      Alert.alert('Erro', 'Não foi possível salvar a anotação.');
     }
   };
   const handleDeleteNote = (noteId: number) => {
@@ -53,25 +27,7 @@ export const NotesSection: React.FC<NotesSectionProps> = ({ petId, anotacoesList
       {
         text: 'Excluir',
         style: 'destructive',
-        onPress: async () => {
-          try {
-            const key = `@pet_notes_${petId}`;
-            const currentNotesRaw = await AsyncStorage.getItem(key);
-            if (currentNotesRaw) {
-              const currentNotes: AnotacaoData[] = JSON.parse(currentNotesRaw);
-              const updatedNotes = currentNotes.filter((note) => note.id !== noteId);
-              await AsyncStorage.setItem(key, JSON.stringify(updatedNotes));
-              Alert.alert('Sucesso', 'Anotação excluída com sucesso.');
-              if (onDeleteSuccess) {
-                onDeleteSuccess();
-              } else {
-                onSaveSuccess();
-              }
-            }
-          } catch (error) {
-            Alert.alert('Erro', 'Não foi possível excluir a anotação.');
-          }
-        },
+        onPress: () => onRemove(noteId).catch(() => Alert.alert('Erro', 'Não foi possível excluir a anotação.')),
       },
     ]);
   };
@@ -87,21 +43,21 @@ export const NotesSection: React.FC<NotesSectionProps> = ({ petId, anotacoesList
         onChangeText={setAnotacao}
       />
       <TouchableOpacity
-        style={[styles.saveNoteButton, (!anotacao.trim() || savingNote) && styles.buttonDisabled]}
+        style={[styles.saveNoteButton, (!anotacao.trim() || saving) && styles.buttonDisabled]}
         onPress={handleSaveNote}
-        disabled={!anotacao.trim() || savingNote}
+        disabled={!anotacao.trim() || saving}
       >
-        {savingNote ? (
+        {saving ? (
           <ActivityIndicator size="small" color={COLORS.white} />
         ) : (
           <Text style={styles.saveNoteText}>Salvar Anotação</Text>
         )}
       </TouchableOpacity>
 
-      {anotacoesList.length > 0 && (
+      {notes.length > 0 && (
         <View style={styles.notesListContainer}>
           <Text style={styles.notesListHeader}>Histórico Clínico:</Text>
-          {anotacoesList.map((item) => (
+          {notes.map((item) => (
             <View key={item.id.toString()} style={styles.noteItemCard}>
               <View style={styles.noteItemHeader}>
                 {item.dataCriacao ? <Text style={styles.noteItemDate}>{item.dataCriacao}</Text> : <View />}

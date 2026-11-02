@@ -1,6 +1,7 @@
 import { api, extractApiErrorMessage } from './api';
 import { AI_ANALYSIS_TIMEOUT_MS } from '@config/env';
 import { petExtrasStorage } from '@storage/petExtrasStorage';
+import { petNotesStorage } from '@storage/petNotesStorage';
 import { normalizeSpecies, speciesToApiLabel } from '@utils/species';
 import { calculateAgeInYears } from '@utils/date';
 import { Pet, PetApiDTO, PetFormData } from '@models/Pet';
@@ -131,6 +132,7 @@ export const petService = {
     try {
       await api.delete(`/pets/${id}`);
       await petExtrasStorage.deleteExtras(id);
+      await petNotesStorage.removeAll(id);
     } catch (error) {
       throw new Error(extractApiErrorMessage(error, 'Não foi possível remover o pet.'));
     }

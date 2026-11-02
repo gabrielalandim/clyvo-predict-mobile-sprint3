@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Image } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
@@ -12,23 +12,19 @@ import { getEventTypeConfig } from '@models/HealthEvent';
 import { getScoreStatus } from '@utils/score';
 import { formatIsoDateBR, formatYears } from '@utils/date';
 import { preventivePercentage } from '@utils/healthEvents';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { usePet } from '@hooks/usePets';
 import { useHealthEvents } from '@hooks/useHealthEvents';
 import { useConfirmDeletePet, useConfirmDeleteHealthEvent } from '@hooks/useDeleteConfirmations';
 import { useThemedStyles } from '@hooks/useThemedStyles';
 import { useErrorAlert } from '@hooks/useErrorAlert';
+import { useRefetchOnFocus } from '@hooks/useRefetchOnFocus';
+import { usePetNotes } from '@hooks/usePetNotes';
 
 type PetDetailsNavigationProp = StackNavigationProp<RootStackParamList, 'PetDetails'>;
 type PetDetailsRouteProp = RouteProp<RootStackParamList, 'PetDetails'>;
 interface Props {
   navigation: PetDetailsNavigationProp;
   route: PetDetailsRouteProp;
-}
-interface AnotacaoData {
-  id: number;
-  texto: string;
-  dataCriacao?: string;
 }
 const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
@@ -39,31 +35,15 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   const confirmDeletePet = useConfirmDeletePet();
   const confirmDeleteEvent = useConfirmDeleteHealthEvent(petId);
 
-  const [anotacoesList, setAnotacoesList] = useState<AnotacaoData[]>([]);
+  const { notes, addNote, removeNote, saving: savingNote } = usePetNotes(petId);
   const [infoModalVisible, setInfoModalVisible] = useState(false);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      refetchPet();
-      refetchEvents();
-      handleGetNotes();
-    });
-    return unsubscribe;
-  }, [navigation, refetchPet, refetchEvents]);
+  useRefetchOnFocus(refetchPet, refetchEvents);
 
   useErrorAlert(petError, 'Erro');
 
   useErrorAlert(eventsError, 'Erro ao carregar histórico');
 
-  const handleGetNotes = async () => {
-    try {
-      const key = `@pet_notes_${petId}`;
-      const localNotes = await AsyncStorage.getItem(key);
-      setAnotacoesList(localNotes ? JSON.parse(localNotes) : []);
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   const handleOpenMenu = () => {
     if (!pet) return;
@@ -197,7 +177,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.infoText}>Nenhuma consulta agendada para os próximos dias.</Text>
           </View>
 
-          <NotesSection petId={parseInt(pet.id, 10)} anotacoesList={anotacoesList} onSaveSuccess={handleGetNotes} />
+          <NotesSection notes={notes} saving={savingNote} onAdd={addNote} onRemove={removeNote} />
 
           <View style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>HISTÓRICO DE EVENTOS</Text>
