@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, FONT_SIZES, getScoreColor } from '../constants/theme';
+import { COLORS, SPACING, FONT_SIZES, getScoreColor } from '@constants/theme';
 import { Pet } from '@models/Pet';
-import { getBreedIcon } from '../constants/races';
+import { getBreedIcon } from '@constants/races';
 import { useTheme } from '@contexts/ThemeContext';
 interface PetCardProps {
   item: Pet;

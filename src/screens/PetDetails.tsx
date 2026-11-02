@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Image } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from '../navigation/types';
+import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES, getScoreColor } from '@constants/theme';
 import { FactorBar } from '@components/FactorBar';
 import { ScoreInfoModal } from '@components/ScoreInfoModal';

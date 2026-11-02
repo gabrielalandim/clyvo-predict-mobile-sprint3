@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { SPACING, FONT_SIZES } from '../constants/theme';
+import { SPACING, FONT_SIZES } from '@constants/theme';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '@navigation/types';
 import { useTheme } from '@contexts/ThemeContext';
 interface BottomTabBarProps {
-  activeRoute: 'Home' | 'Wallet' | 'History' | 'tutorProfile';
-  navigation: any;
+  activeRoute: 'Home' | 'PetWallet' | 'PetHistory' | 'TutorProfile';
+  navigation: StackNavigationProp<RootStackParamList>;
   petId?: string;
 }
 export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeRoute, navigation, petId }) => {
@@ -20,35 +22,35 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeRoute, navigat
 
       <TouchableOpacity
         style={styles.tabItem}
-        onPress={() => navigation.navigate('Carteirinha', petId ? { petId } : undefined)}
+        onPress={() => navigation.navigate('PetWallet', petId ? { petId } : undefined)}
       >
         <Ionicons
           name="clipboard-outline"
           size={24}
-          color={activeRoute === 'Wallet' ? COLORS.primary : COLORS.textSecondary}
+          color={activeRoute === 'PetWallet' ? COLORS.primary : COLORS.textSecondary}
         />
-        <Text style={[styles.tabLabel, activeRoute === 'Wallet' && styles.tabLabelActive]}>Carteira</Text>
+        <Text style={[styles.tabLabel, activeRoute === 'PetWallet' && styles.tabLabelActive]}>Carteira</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.tabItem}
-        onPress={() => navigation.navigate('History', petId ? { petId } : undefined)}
+        onPress={() => navigation.navigate('PetHistory', petId ? { petId } : undefined)}
       >
         <Ionicons
           name="bar-chart-outline"
           size={24}
-          color={activeRoute === 'History' ? COLORS.primary : COLORS.textSecondary}
+          color={activeRoute === 'PetHistory' ? COLORS.primary : COLORS.textSecondary}
         />
-        <Text style={[styles.tabLabel, activeRoute === 'History' && styles.tabLabelActive]}>Histórico</Text>
+        <Text style={[styles.tabLabel, activeRoute === 'PetHistory' && styles.tabLabelActive]}>Histórico</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('tutorProfile')}>
+      <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('TutorProfile')}>
         <Ionicons
           name="person-outline"
           size={24}
-          color={activeRoute === 'tutorProfile' ? COLORS.primary : COLORS.textSecondary}
+          color={activeRoute === 'TutorProfile' ? COLORS.primary : COLORS.textSecondary}
         />
-        <Text style={[styles.tabLabel, activeRoute === 'tutorProfile' && styles.tabLabelActive]}>Perfil</Text>
+        <Text style={[styles.tabLabel, activeRoute === 'TutorProfile' && styles.tabLabelActive]}>Perfil</Text>
       </TouchableOpacity>
     </View>
   );

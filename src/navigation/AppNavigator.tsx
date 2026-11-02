@@ -2,19 +2,19 @@ import React from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { RootStackParamList } from './types';
-import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../contexts/AuthContext';
-import WelcomeScreen from '../screens/Welcome';
-import LoginScreen from '../screens/Login';
-import RegisterScreen from '../screens/Register';
+import { useTheme } from '@contexts/ThemeContext';
+import { useAuth } from '@contexts/AuthContext';
+import WelcomeScreen from '@screens/Welcome';
+import LoginScreen from '@screens/Login';
+import RegisterScreen from '@screens/Register';
 import HomeScreen from '@screens/Home';
 import AddPetChoiceScreen from '@screens/AddPetChoice';
 import AddPetScreen from '@screens/AddPet';
-import AddHealthEventScreen from '@screens/addHealthEvent';
+import AddHealthEventScreen from '@screens/AddHealthEvent';
 import PetDetailsScreen from '@screens/PetDetails';
-import HistoryScreen from '@screens/PetHistory';
-import CarteirinhaScreen from '@screens/PetMedicalScreen';
-import TutorProfileScreen from '@screens/tutorProfile';
+import PetHistoryScreen from '@screens/PetHistory';
+import PetWalletScreen from '@screens/PetWallet';
+import TutorProfileScreen from '@screens/TutorProfile';
 const Stack = createStackNavigator<RootStackParamList>();
 const AppNavigator: React.FC = () => {
   const { colors } = useTheme();
@@ -41,9 +41,9 @@ const AppNavigator: React.FC = () => {
           <Stack.Screen name="AddPet" component={AddPetScreen} />
           <Stack.Screen name="AddHealthEvent" component={AddHealthEventScreen} />
           <Stack.Screen name="PetDetails" component={PetDetailsScreen} />
-          <Stack.Screen name="History" component={HistoryScreen} />
-          <Stack.Screen name="Carteirinha" component={CarteirinhaScreen} />
-          <Stack.Screen name="tutorProfile" component={TutorProfileScreen} />
+          <Stack.Screen name="PetHistory" component={PetHistoryScreen} />
+          <Stack.Screen name="PetWallet" component={PetWalletScreen} />
+          <Stack.Screen name="TutorProfile" component={TutorProfileScreen} />
         </>
       ) : (
         <>

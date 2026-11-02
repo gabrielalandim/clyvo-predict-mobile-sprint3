@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Switch, Alert } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/types';
-import { SPACING, FONT_SIZES } from '../constants/theme';
+import { RootStackParamList } from '@navigation/types';
+import { SPACING, FONT_SIZES } from '@constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { BottomTabBar } from '../components/BottomBarTab';
+import { BottomTabBar } from '@components/BottomTabBar';
 import { useTheme } from '@contexts/ThemeContext';
 import { useAuth } from '@contexts/AuthContext';
 import { useState } from 'react';
@@ -12,7 +12,7 @@ import { usePets } from '@hooks/usePets';
 import { useQueries } from '@tanstack/react-query';
 import { healthEventKeys } from '@hooks/useHealthEvents';
 import { healthEventService } from '@services/healthEventService';
-type TutorProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'tutorProfile'>;
+type TutorProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'TutorProfile'>;
 type Props = {
   navigation: TutorProfileScreenNavigationProp;
 };
@@ -262,7 +262,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
           </View>
         </ScrollView>
 
-        <BottomTabBar activeRoute="tutorProfile" navigation={navigation} petId="" />
+        <BottomTabBar activeRoute="TutorProfile" navigation={navigation} petId="" />
       </View>
     </SafeAreaView>
   );

@@ -14,7 +14,7 @@ import { RootStackParamList } from '@navigation/types';
 import { COLORS, SPACING, FONT_SIZES } from '@constants/theme';
 import { useAuth } from '@contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
-import { BottomTabBar } from '@components/BottomBarTab';
+import { BottomTabBar } from '@components/BottomTabBar';
 import { PlansSection } from '@components/PlansSection';
 import { PetCard } from '@components/PetCard';
 import { useTheme } from '@contexts/ThemeContext';

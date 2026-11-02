@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '@contexts/ThemeContext';
-import { COLORS, SPACING, FONT_SIZES, getScoreColor } from '../constants/theme';
-import { Pet } from '../models/Pet';
-import { SPECIES_CONFIG } from '../constants/races';
+import { COLORS, SPACING, FONT_SIZES, getScoreColor } from '@constants/theme';
+import { Pet } from '@models/Pet';
+import { SPECIES_CONFIG } from '@constants/races';
 export const PetIdentityCard: React.FC<{
   pet: Pet;
 }> = ({ pet }) => {

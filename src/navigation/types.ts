@@ -1,3 +1,5 @@
+import { TipoEvento } from '@models/HealthEvent';
+
 export type RootStackParamList = {
   Welcome: undefined;
   Login: undefined;
@@ -15,16 +17,12 @@ export type RootStackParamList = {
     petId: string;
     editEvent?: {
       id: string;
-      tipoEvento: import('@models/HealthEvent').TipoEvento;
+      tipoEvento: TipoEvento;
       descricao: string;
       dataEvento: string;
     };
   };
-  History: undefined;
-  Carteirinha:
-    | {
-        petId?: string;
-      }
-    | undefined;
-  tutorProfile: undefined;
+  PetHistory: { petId?: string } | undefined;
+  PetWallet: { petId?: string } | undefined;
+  TutorProfile: undefined;
 };

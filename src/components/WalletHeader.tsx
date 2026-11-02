@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useTheme } from '@contexts/ThemeContext';
-import { COLORS, SPACING, FONT_SIZES } from '../constants/theme';
-import { Pet } from '../models/Pet';
-import { SPECIES_CONFIG } from '../constants/races';
+import { COLORS, SPACING, FONT_SIZES } from '@constants/theme';
+import { Pet } from '@models/Pet';
+import { SPECIES_CONFIG } from '@constants/races';
 interface WalletHeaderProps {
   pets: Pet[];
   currentPet: Pet | null;

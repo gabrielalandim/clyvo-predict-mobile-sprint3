@@ -10,16 +10,16 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/types';
-import { COLORS, SPACING, FONT_SIZES, getScoreColor } from '../constants/theme';
-import { SPECIES_CONFIG } from '../constants/races';
+import { RootStackParamList } from '@navigation/types';
+import { COLORS, SPACING, FONT_SIZES, getScoreColor } from '@constants/theme';
+import { SPECIES_CONFIG } from '@constants/races';
 import { getEventTypeConfig, HealthEvent, isPreventiveEvent } from '@models/HealthEvent';
-import { BottomTabBar } from '../components/BottomBarTab';
+import { BottomTabBar } from '@components/BottomTabBar';
 import { useTheme } from '@contexts/ThemeContext';
 import { usePets } from '@hooks/usePets';
 import { useHealthEvents } from '@hooks/useHealthEvents';
 type Props = {
-  navigation: StackNavigationProp<RootStackParamList, 'History'>;
+  navigation: StackNavigationProp<RootStackParamList, 'PetHistory'>;
 };
 const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 type Period = '1m' | '3m' | '6m';
@@ -31,7 +31,7 @@ const getScoreLabel = (score: number): string => {
   return 'Crítico';
 };
 const parseEventDate = (dataEvento: string): Date => new Date(`${dataEvento}T00:00:00`);
-export default function HistoryScreen({ navigation }: Props) {
+export default function PetHistoryScreen({ navigation }: Props) {
   const { colors: COLORS } = useTheme();
   const styles = makeStyles(COLORS);
   const [petSel, setPetSel] = useState<string>('');
@@ -317,7 +317,7 @@ export default function HistoryScreen({ navigation }: Props) {
           </View>
         </ScrollView>
 
-        <BottomTabBar activeRoute="History" navigation={navigation} petId={petSel} />
+        <BottomTabBar activeRoute="PetHistory" navigation={navigation} petId={petSel} />
       </View>
     </SafeAreaView>
   );

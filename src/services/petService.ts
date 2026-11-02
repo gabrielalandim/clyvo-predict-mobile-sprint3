@@ -1,6 +1,6 @@
 import { api, extractApiErrorMessage } from './api';
 import { AI_ANALYSIS_TIMEOUT_MS } from '@config/env';
-import { petExtrasStorage } from './petExtrasStorage';
+import { petExtrasStorage } from '@storage/petExtrasStorage';
 import { normalizeSpecies, speciesToApiLabel } from '@utils/species';
 import { Pet, PetApiDTO, PetFormData } from '@models/Pet';
 import { PetRegistrationAiResponseDTO } from '@models/PetAiAnalysis';

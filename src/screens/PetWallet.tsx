@@ -11,11 +11,11 @@ import {
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from '../navigation/types';
-import { SPACING, FONT_SIZES } from '../constants/theme';
+import { RootStackParamList } from '@navigation/types';
+import { SPACING, FONT_SIZES } from '@constants/theme';
 import { Pet } from '@models/Pet';
 import { HealthEvent, getEventTypeConfig } from '@models/HealthEvent';
-import { BottomTabBar } from '../components/BottomBarTab';
+import { BottomTabBar } from '@components/BottomTabBar';
 import { WalletHeader } from '@components/WalletHeader';
 import { PetIdentityCard } from '@components/PetIdentityCard';
 import { useTheme } from '@contexts/ThemeContext';
@@ -23,8 +23,8 @@ import { usePets } from '@hooks/usePets';
 import { useHealthEvents } from '@hooks/useHealthEvents';
 import { generateAndSharePetPdf } from '@utils/petPdf';
 type Props = {
-  navigation: StackNavigationProp<RootStackParamList, 'Carteirinha'>;
-  route: RouteProp<RootStackParamList, 'Carteirinha'>;
+  navigation: StackNavigationProp<RootStackParamList, 'PetWallet'>;
+  route: RouteProp<RootStackParamList, 'PetWallet'>;
 };
 function SectionTitle({ icon, title }: { icon: string; title: string }) {
   const { colors: COLORS } = useTheme();
@@ -59,7 +59,7 @@ function EventList({ events, emptyLabel }: { events: HealthEvent[]; emptyLabel: 
     </>
   );
 }
-export default function CarteirinhaScreen({ navigation, route }: Props) {
+export default function PetWalletScreen({ navigation, route }: Props) {
   const { colors: COLORS } = useTheme();
   const styles = makeStyles(COLORS);
   const [currentPetId, setCurrentPetId] = useState<string | null>(route.params?.petId ?? null);
@@ -165,7 +165,7 @@ export default function CarteirinhaScreen({ navigation, route }: Props) {
           )}
         </ScrollView>
 
-        <BottomTabBar activeRoute="Wallet" navigation={navigation} />
+        <BottomTabBar activeRoute="PetWallet" navigation={navigation} />
       </View>
     </SafeAreaView>
   );
