@@ -1,5 +1,5 @@
 import { api, extractApiErrorMessage } from './api';
-import { sessionStorage } from './session';
+import { sessionStorage } from '@storage/sessionStorage';
 import { TutorAuthResponseDTO, TutorSession } from '@models/Auth';
 export interface RegisterPayload {
   nome: string;

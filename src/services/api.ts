@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { API_BASE_URL, DEFAULT_TIMEOUT_MS } from '@config/env';
-import { sessionStorage } from './session';
+import { sessionStorage } from '@storage/sessionStorage';
 import { authEvents } from './authEvents';
 export const api = axios.create({
   baseURL: API_BASE_URL,
