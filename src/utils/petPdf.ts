@@ -2,10 +2,9 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Pet } from '@models/Pet';
 import { HealthEvent, getEventTypeConfig } from '@models/HealthEvent';
+import { formatIsoDateBR, formatYears } from '@utils/date';
+import { groupEventsByCategory } from '@utils/healthEvents';
 
-function formatDate(dataEvento: string): string {
-  return new Date(`${dataEvento}T00:00:00`).toLocaleDateString('pt-BR');
-}
 
 function eventRowsHtml(events: HealthEvent[], emptyLabel: string): string {
   if (events.length === 0) {
@@ -16,17 +15,14 @@ function eventRowsHtml(events: HealthEvent[], emptyLabel: string): string {
       (evt) => `
         <tr>
           <td>${getEventTypeConfig(evt.tipoEvento).emoji} ${evt.descricao}</td>
-          <td>${formatDate(evt.dataEvento)}</td>
+          <td>${formatIsoDateBR(evt.dataEvento)}</td>
         </tr>`,
     )
     .join('');
 }
 
 function buildHtml(pet: Pet, events: HealthEvent[]): string {
-  const vacinas = events.filter((e) => e.tipoEvento === 'VACINA');
-  const exames = events.filter((e) => e.tipoEvento === 'EXAME');
-  const consultas = events.filter((e) => e.tipoEvento === 'CONSULTA_ROTINA');
-  const outros = events.filter((e) => !['VACINA', 'EXAME', 'CONSULTA_ROTINA'].includes(e.tipoEvento));
+  const { vacinas, exames, consultas, outros } = groupEventsByCategory(events);
   const geradoEm = new Date().toLocaleString('pt-BR');
 
   return `
@@ -58,7 +54,7 @@ function buildHtml(pet: Pet, events: HealthEvent[]): string {
       <div class="card pet-header">
         <div>
           <div class="pet-name">${pet.name}</div>
-          <div class="pet-meta">${pet.breed || 'SRD'} • ${pet.age} ${pet.age === 1 ? 'ano' : 'anos'} • ${pet.weight ?? '--'} kg</div>
+          <div class="pet-meta">${pet.breed || 'SRD'} • ${formatYears(pet.age)} • ${pet.weight ?? '--'} kg</div>
         </div>
         <div class="score">${pet.score}</div>
       </div>

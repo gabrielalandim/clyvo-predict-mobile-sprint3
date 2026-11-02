@@ -8,7 +8,10 @@ import { FactorBar } from '@components/FactorBar';
 import { ScoreInfoModal } from '@components/ScoreInfoModal';
 import { NotesSection } from '@components/NotesSection';
 import { Ionicons } from '@expo/vector-icons';
-import { getEventTypeConfig, isPreventiveEvent } from '@models/HealthEvent';
+import { getEventTypeConfig } from '@models/HealthEvent';
+import { getScoreStatus } from '@utils/score';
+import { formatIsoDateBR, formatYears } from '@utils/date';
+import { preventivePercentage } from '@utils/healthEvents';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@contexts/ThemeContext';
 import { usePet, useDeletePet } from '@hooks/usePets';
@@ -158,11 +161,6 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
     ]);
   };
 
-  const getStatusText = (score: number) => {
-    if (score >= 80) return 'Excelente';
-    if (score >= 50) return 'Regular';
-    return 'Crítico';
-  };
   if (petLoading) {
     return (
       <View style={styles.centerContainer}>
@@ -206,7 +204,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
             <Text style={styles.petName}>{pet.name}</Text>
             <Text style={styles.petSubtitle}>
-              {pet.breed} • {pet.age} {pet.age === 1 ? 'ano' : 'anos'} • {pet.weight ?? '--'} kg
+              {pet.breed} • {formatYears(pet.age)} • {pet.weight ?? '--'} kg
             </Text>
           </View>
         </View>
@@ -218,7 +216,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
               <Text style={styles.scoreLabel}>Score Saúde</Text>
             </View>
             <View style={styles.statusBadge}>
-              <Text style={[styles.statusText, { color: getScoreColor(pet.score) }]}>{getStatusText(pet.score)}!</Text>
+              <Text style={[styles.statusText, { color: getScoreColor(pet.score) }]}>{getScoreStatus(pet.score)}!</Text>
             </View>
           </View>
 
@@ -233,15 +231,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
             <FactorBar label="Histórico Preventivo" percentage={pet.score} color={getScoreColor(pet.score)} />
             <FactorBar
               label="% de Eventos Preventivos"
-              percentage={
-                events.length > 0
-                  ? Math.round(
-                      (events.filter((e) => isPreventiveEvent(e.tipoEvento)).length /
-                        events.length) *
-                        100,
-                    )
-                  : 0
-              }
+              percentage={preventivePercentage(events)}
               color={COLORS.primary}
             />
           </View>
@@ -279,7 +269,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.eventTitle}>{evt.descricao}</Text>
                     <Text style={styles.eventDate}>
-                      {new Date(evt.dataEvento + 'T00:00:00').toLocaleDateString('pt-BR')}
+                      {formatIsoDateBR(evt.dataEvento)}
                     </Text>
                   </View>
                   <Text style={[styles.eventDelta, { color: evt.deltaScore < 0 ? COLORS.accent : COLORS.scoreGreen }]}>

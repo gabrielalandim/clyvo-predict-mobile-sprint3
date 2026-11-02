@@ -22,6 +22,8 @@ import { useTheme } from '@contexts/ThemeContext';
 import { usePets } from '@hooks/usePets';
 import { useHealthEvents } from '@hooks/useHealthEvents';
 import { generateAndSharePetPdf } from '@utils/petPdf';
+import { formatIsoDateBR } from '@utils/date';
+import { groupEventsByCategory } from '@utils/healthEvents';
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'PetWallet'>;
   route: RouteProp<RootStackParamList, 'PetWallet'>;
@@ -36,9 +38,6 @@ function SectionTitle({ icon, title }: { icon: string; title: string }) {
     </View>
   );
 }
-function formatDate(dataEvento: string): string {
-  return new Date(`${dataEvento}T00:00:00`).toLocaleDateString('pt-BR');
-}
 function EventList({ events, emptyLabel }: { events: HealthEvent[]; emptyLabel: string }) {
   const { colors: COLORS } = useTheme();
   const styles = makeStyles(COLORS);
@@ -52,7 +51,7 @@ function EventList({ events, emptyLabel }: { events: HealthEvent[]; emptyLabel: 
           <Text style={{ fontSize: 18 }}>{getEventTypeConfig(evt.tipoEvento).emoji}</Text>
           <View style={{ flex: 1, marginLeft: SPACING.sm }}>
             <Text style={styles.listTitle}>{evt.descricao}</Text>
-            <Text style={styles.listSub}>{formatDate(evt.dataEvento)}</Text>
+            <Text style={styles.listSub}>{formatIsoDateBR(evt.dataEvento)}</Text>
           </View>
         </View>
       ))}
@@ -75,10 +74,7 @@ export default function PetWalletScreen({ navigation, route }: Props) {
   useEffect(() => {
     if (eventsError) Alert.alert('Erro ao carregar histórico', (eventsError as Error).message);
   }, [eventsError]);
-  const vacinas = events.filter((e) => e.tipoEvento === 'VACINA');
-  const exames = events.filter((e) => e.tipoEvento === 'EXAME');
-  const consultas = events.filter((e) => e.tipoEvento === 'CONSULTA_ROTINA');
-  const outros = events.filter((e) => !['VACINA', 'EXAME', 'CONSULTA_ROTINA'].includes(e.tipoEvento));
+  const { vacinas, exames, consultas, outros } = groupEventsByCategory(events);
 
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const handleGeneratePDF = async () => {

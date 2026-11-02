@@ -1,0 +1,44 @@
+
+export function parseIsoDate(isoDate: string): Date {
+  return new Date(`${isoDate}T00:00:00`);
+}
+
+export function formatIsoDateBR(isoDate: string): string {
+  return parseIsoDate(isoDate).toLocaleDateString('pt-BR');
+}
+
+export function parseBRDate(dateBR: string): Date | null {
+  const parts = dateBR.split('/');
+  if (parts.length !== 3) return null;
+  const [day, month, year] = parts.map((p) => parseInt(p, 10));
+  const date = new Date(year, month - 1, day);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+export function calculateAgeInYears(birthDateBR: string, today: Date = new Date()): number | null {
+  const birthDate = parseBRDate(birthDateBR);
+  if (!birthDate) return null;
+  let years = today.getFullYear() - birthDate.getFullYear();
+  const beforeBirthdayThisYear =
+    today.getMonth() < birthDate.getMonth() ||
+    (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate());
+  if (beforeBirthdayThisYear) years--;
+  return Math.max(0, years);
+}
+
+export function formatAgeFromBirthDate(birthDateBR: string, today: Date = new Date()): string {
+  const birthDate = birthDateBR.length >= 10 ? parseBRDate(birthDateBR) : null;
+  if (!birthDate || birthDate > today) return '--';
+  let years = today.getFullYear() - birthDate.getFullYear();
+  let months = today.getMonth() - birthDate.getMonth();
+  if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) {
+    years--;
+    months += 12;
+  }
+  if (years > 0) return `${years} ${years === 1 ? 'ano' : 'anos'}`;
+  return `${months} ${months === 1 ? 'mês' : 'meses'}`;
+}
+
+export function formatYears(age: number): string {
+  return `${age} ${age === 1 ? 'ano' : 'anos'}`;
+}

@@ -14,6 +14,8 @@ import { RootStackParamList } from '@navigation/types';
 import { COLORS, SPACING, FONT_SIZES, getScoreColor } from '@constants/theme';
 import { SPECIES_CONFIG } from '@constants/races';
 import { getEventTypeConfig, HealthEvent, isPreventiveEvent } from '@models/HealthEvent';
+import { getScoreStatus } from '@utils/score';
+import { formatAgeFromBirthDate, formatIsoDateBR, formatYears, parseIsoDate } from '@utils/date';
 import { BottomTabBar } from '@components/BottomTabBar';
 import { useTheme } from '@contexts/ThemeContext';
 import { usePets } from '@hooks/usePets';
@@ -25,12 +27,6 @@ const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', '
 type Period = '1m' | '3m' | '6m';
 const PERIOD_MONTHS: Record<Period, number> = { '1m': 1, '3m': 3, '6m': 6 };
 const CHART_MONTHS_BACK = 6;
-const getScoreLabel = (score: number): string => {
-  if (score >= 80) return 'Excelente';
-  if (score >= 50) return 'Regular';
-  return 'Crítico';
-};
-const parseEventDate = (dataEvento: string): Date => new Date(`${dataEvento}T00:00:00`);
 export default function PetHistoryScreen({ navigation }: Props) {
   const { colors: COLORS } = useTheme();
   const styles = makeStyles(COLORS);
@@ -60,7 +56,7 @@ export default function PetHistoryScreen({ navigation }: Props) {
     const monthsBack = PERIOD_MONTHS[period];
     const cutoff = new Date();
     cutoff.setMonth(cutoff.getMonth() - monthsBack);
-    return events.filter((e) => parseEventDate(e.dataEvento) >= cutoff);
+    return events.filter((e) => parseIsoDate(e.dataEvento) >= cutoff);
   }, [events, period]);
   const periodDelta = filteredEvents.reduce((acc, curr) => acc + curr.deltaScore, 0);
   const chartData = useMemo(() => {
@@ -69,7 +65,7 @@ export default function PetHistoryScreen({ navigation }: Props) {
     for (let i = CHART_MONTHS_BACK; i >= 0; i--) {
       const boundary = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
       const futureDeltaSum = events
-        .filter((e) => parseEventDate(e.dataEvento) >= boundary)
+        .filter((e) => parseIsoDate(e.dataEvento) >= boundary)
         .reduce((acc, e) => acc + e.deltaScore, 0);
       const score = Math.max(0, Math.min(100, currentScore - futureDeltaSum));
       points.push(score);
@@ -91,27 +87,6 @@ export default function PetHistoryScreen({ navigation }: Props) {
     { k: '3m', label: '3 meses' },
     { k: '6m', label: '6 meses' },
   ];
-  const calculateAgeText = (birthDateStr: string): string => {
-    if (!birthDateStr || birthDateStr.length < 10) return '--';
-    const parts = birthDateStr.split('/');
-    if (parts.length !== 3) return '--';
-    const day = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10) - 1;
-    const year = parseInt(parts[2], 10);
-    const birthDate = new Date(year, month, day);
-    const today = new Date();
-    if (isNaN(birthDate.getTime()) || birthDate > today) return '--';
-    let years = today.getFullYear() - birthDate.getFullYear();
-    let months = today.getMonth() - birthDate.getMonth();
-    if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) {
-      years--;
-      months += 12;
-    }
-    if (years > 0) {
-      return `${years} ${years === 1 ? 'ano' : 'anos'}`;
-    }
-    return `${months} ${months === 1 ? 'mês' : 'meses'}`;
-  };
   const breakdownItems = useMemo(() => {
     const countByType = (type: HealthEvent['tipoEvento']) => filteredEvents.filter((e) => e.tipoEvento === type).length;
     const items = [
@@ -191,8 +166,8 @@ export default function PetHistoryScreen({ navigation }: Props) {
                       <Text style={styles.metaBadgeLabel}>Idade</Text>
                       <Text style={styles.metaBadgeValue}>
                         {currentPet.birthDate
-                          ? calculateAgeText(currentPet.birthDate)
-                          : `${currentPet.age} ${currentPet.age === 1 ? 'ano' : 'anos'}`}
+                          ? formatAgeFromBirthDate(currentPet.birthDate)
+                          : formatYears(currentPet.age)}
                       </Text>
                     </View>
 
@@ -223,7 +198,7 @@ export default function PetHistoryScreen({ navigation }: Props) {
                     }}
                   >
                     <Text style={{ fontSize: FONT_SIZES.sm, fontWeight: '700', color: getScoreColor(currentScore) }}>
-                      {getScoreLabel(currentScore)}
+                      {getScoreStatus(currentScore)}
                     </Text>
                   </View>
                 </View>
@@ -305,7 +280,7 @@ export default function PetHistoryScreen({ navigation }: Props) {
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.eventTitle}>{evt.descricao}</Text>
-                    <Text style={styles.eventDate}>{parseEventDate(evt.dataEvento).toLocaleDateString('pt-BR')}</Text>
+                    <Text style={styles.eventDate}>{formatIsoDateBR(evt.dataEvento)}</Text>
                   </View>
                   <Text style={[styles.eventDelta, { color: evt.deltaScore < 0 ? COLORS.accent : COLORS.scoreGreen }]}>
                     {evt.deltaScore > 0 ? '+' : ''}

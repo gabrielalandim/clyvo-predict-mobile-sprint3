@@ -2,6 +2,7 @@ import { api, extractApiErrorMessage } from './api';
 import { AI_ANALYSIS_TIMEOUT_MS } from '@config/env';
 import { petExtrasStorage } from '@storage/petExtrasStorage';
 import { normalizeSpecies, speciesToApiLabel } from '@utils/species';
+import { calculateAgeInYears } from '@utils/date';
 import { Pet, PetApiDTO, PetFormData } from '@models/Pet';
 import { PetRegistrationAiResponseDTO } from '@models/PetAiAnalysis';
 interface PageResponse<T> {
@@ -30,24 +31,8 @@ async function toViewModel(dto: PetApiDTO): Promise<Pet> {
     bodyCondition: extras.bodyCondition,
   };
 }
-function calculateAgeFromBirthDate(birthDateStr: string): number | null {
-  const parts = birthDateStr.split('/');
-  if (parts.length !== 3) return null;
-  const day = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10) - 1;
-  const year = parseInt(parts[2], 10);
-  const birthDate = new Date(year, month, day);
-  if (isNaN(birthDate.getTime())) return null;
-  const today = new Date();
-  let years = today.getFullYear() - birthDate.getFullYear();
-  const beforeBirthdayThisYear =
-    today.getMonth() < birthDate.getMonth() ||
-    (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate());
-  if (beforeBirthdayThisYear) years--;
-  return Math.max(0, years);
-}
 function toRequestDTO(form: PetFormData) {
-  const ageFromBirthDate = form.birthDate ? calculateAgeFromBirthDate(form.birthDate) : null;
+  const ageFromBirthDate = form.birthDate ? calculateAgeInYears(form.birthDate) : null;
   const idade = ageFromBirthDate ?? parseInt(form.age, 10);
   return {
     nome: form.name.trim(),
