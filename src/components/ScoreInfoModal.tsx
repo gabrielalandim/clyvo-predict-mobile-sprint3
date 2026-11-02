@@ -2,14 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SPACING, FONT_SIZES } from '@constants/theme';
-import { useTheme } from '@contexts/ThemeContext';
+import { useThemedStyles } from '@hooks/useThemedStyles';
 interface ScoreInfoModalProps {
   visible: boolean;
   onClose: () => void;
 }
 export const ScoreInfoModal: React.FC<ScoreInfoModalProps> = ({ visible, onClose }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   return (
     <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={onClose}>
       <View style={styles.modalOverlay}>

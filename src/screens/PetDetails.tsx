@@ -13,9 +13,10 @@ import { getScoreStatus } from '@utils/score';
 import { formatIsoDateBR, formatYears } from '@utils/date';
 import { preventivePercentage } from '@utils/healthEvents';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme } from '@contexts/ThemeContext';
 import { usePet, useDeletePet } from '@hooks/usePets';
 import { useHealthEvents, useDeleteHealthEvent } from '@hooks/useHealthEvents';
+import { useThemedStyles } from '@hooks/useThemedStyles';
+import { useErrorAlert } from '@hooks/useErrorAlert';
 
 type PetDetailsNavigationProp = StackNavigationProp<RootStackParamList, 'PetDetails'>;
 type PetDetailsRouteProp = RouteProp<RootStackParamList, 'PetDetails'>;
@@ -29,8 +30,7 @@ interface AnotacaoData {
   dataCriacao?: string;
 }
 const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const { petId } = route.params;
 
   const { data: pet, isLoading: petLoading, error: petError, refetch: refetchPet } = usePet(petId);
@@ -50,13 +50,9 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
     return unsubscribe;
   }, [navigation, refetchPet, refetchEvents]);
 
-  useEffect(() => {
-    if (petError) Alert.alert('Erro', (petError as Error).message);
-  }, [petError]);
+  useErrorAlert(petError, 'Erro');
 
-  useEffect(() => {
-    if (eventsError) Alert.alert('Erro ao carregar histórico', (eventsError as Error).message);
-  }, [eventsError]);
+  useErrorAlert(eventsError, 'Erro ao carregar histórico');
 
   const handleGetNotes = async () => {
     try {

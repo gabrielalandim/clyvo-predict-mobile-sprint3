@@ -4,14 +4,13 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES } from '@constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@contexts/ThemeContext';
+import { useThemedStyles } from '@hooks/useThemedStyles';
 type WelcomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Welcome'>;
 interface Props {
   navigation: WelcomeScreenNavigationProp;
 }
 const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>

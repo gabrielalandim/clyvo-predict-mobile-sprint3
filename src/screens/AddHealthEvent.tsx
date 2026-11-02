@@ -16,8 +16,8 @@ import { SPACING, FONT_SIZES } from '@constants/theme';
 import { EVENT_TYPES, TipoEvento } from '@models/HealthEvent';
 import { maskDateInput, isValidDateInput, toIsoDate, fromIsoDate } from '@utils/dateInput';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@contexts/ThemeContext';
 import { useCreateHealthEvent, useUpdateHealthEvent } from '@hooks/useHealthEvents';
+import { useThemedStyles } from '@hooks/useThemedStyles';
 type AddHealthEventNavigationProp = StackNavigationProp<RootStackParamList, 'AddHealthEvent'>;
 type AddHealthEventRouteProp = RouteProp<RootStackParamList, 'AddHealthEvent'>;
 interface Props {
@@ -25,8 +25,7 @@ interface Props {
   route: AddHealthEventRouteProp;
 }
 const AddHealthEventScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const { petId, editEvent } = route.params;
   const [descricao, setDescricao] = useState(editEvent?.descricao ?? '');
   const [tipo, setTipo] = useState<TipoEvento>(editEvent?.tipoEvento ?? 'VACINA');

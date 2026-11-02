@@ -4,13 +4,12 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES } from '@constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@contexts/ThemeContext';
+import { useThemedStyles } from '@hooks/useThemedStyles';
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'AddPetChoice'>;
 };
 const AddPetChoiceScreen: React.FC<Props> = ({ navigation }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   return (
     <View style={styles.container}>
       <View style={styles.header}>

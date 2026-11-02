@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, FONT_SIZES, getScoreColor } from '@constants/theme';
+import { SPACING, FONT_SIZES, getScoreColor } from '@constants/theme';
 import { Pet } from '@models/Pet';
 import { getBreedIcon } from '@constants/races';
-import { useTheme } from '@contexts/ThemeContext';
+import { useThemedStyles } from '@hooks/useThemedStyles';
 interface PetCardProps {
   item: Pet;
   onPressDetails: () => void;
@@ -12,8 +12,7 @@ interface PetCardProps {
   onPressDelete: () => void;
 }
 export const PetCard: React.FC<PetCardProps> = ({ item, onPressDetails, onPressRegisterEvent, onPressDelete }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const { name, breed, score, species } = item;
   const petEmoji = getBreedIcon(species, breed);
   return (

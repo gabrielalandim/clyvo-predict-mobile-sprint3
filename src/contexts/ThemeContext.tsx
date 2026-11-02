@@ -14,7 +14,8 @@ const DARK_COLORS = {
   scoreRed: '#F96167',
   border: '#334155',
 };
-type Colors = typeof COLORS;
+export type ThemeColors = typeof COLORS;
+type Colors = ThemeColors;
 interface ThemeContextType {
   isDark: boolean;
   colors: Colors;

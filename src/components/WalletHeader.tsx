@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
-import { useTheme } from '@contexts/ThemeContext';
-import { COLORS, SPACING, FONT_SIZES } from '@constants/theme';
+import { SPACING, FONT_SIZES } from '@constants/theme';
 import { Pet } from '@models/Pet';
 import { SPECIES_CONFIG } from '@constants/races';
+import { useThemedStyles } from '@hooks/useThemedStyles';
 interface WalletHeaderProps {
   pets: Pet[];
   currentPet: Pet | null;
@@ -20,8 +20,7 @@ export const WalletHeader: React.FC<WalletHeaderProps> = ({
   onGeneratePDF,
   generatingPDF,
 }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   return (
     <View>
       <View style={styles.header}>

@@ -6,20 +6,20 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
-import { COLORS, SPACING, FONT_SIZES, getScoreColor } from '@constants/theme';
+import { SPACING, FONT_SIZES, getScoreColor } from '@constants/theme';
 import { SPECIES_CONFIG } from '@constants/races';
 import { getEventTypeConfig, HealthEvent, isPreventiveEvent } from '@models/HealthEvent';
 import { getScoreStatus } from '@utils/score';
 import { formatAgeFromBirthDate, formatIsoDateBR, formatYears, parseIsoDate } from '@utils/date';
 import { BottomTabBar } from '@components/BottomTabBar';
-import { useTheme } from '@contexts/ThemeContext';
 import { usePets } from '@hooks/usePets';
 import { useHealthEvents } from '@hooks/useHealthEvents';
+import { useThemedStyles } from '@hooks/useThemedStyles';
+import { useErrorAlert } from '@hooks/useErrorAlert';
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'PetHistory'>;
 };
@@ -28,8 +28,7 @@ type Period = '1m' | '3m' | '6m';
 const PERIOD_MONTHS: Record<Period, number> = { '1m': 1, '3m': 3, '6m': 6 };
 const CHART_MONTHS_BACK = 6;
 export default function PetHistoryScreen({ navigation }: Props) {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const [petSel, setPetSel] = useState<string>('');
   const [period, setPeriod] = useState<Period>('6m');
 
@@ -42,13 +41,9 @@ export default function PetHistoryScreen({ navigation }: Props) {
     }
   }, [pets, petSel]);
 
-  useEffect(() => {
-    if (petsError) Alert.alert('Erro ao carregar pets', (petsError as Error).message);
-  }, [petsError]);
+  useErrorAlert(petsError, 'Erro ao carregar pets');
 
-  useEffect(() => {
-    if (eventsError) Alert.alert('Erro ao carregar histórico', (eventsError as Error).message);
-  }, [eventsError]);
+  useErrorAlert(eventsError, 'Erro ao carregar histórico');
 
   const currentPet = pets.find((p) => p.id === petSel);
   const currentScore = currentPet?.score ?? 70;

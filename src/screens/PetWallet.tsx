@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -18,19 +18,19 @@ import { HealthEvent, getEventTypeConfig } from '@models/HealthEvent';
 import { BottomTabBar } from '@components/BottomTabBar';
 import { WalletHeader } from '@components/WalletHeader';
 import { PetIdentityCard } from '@components/PetIdentityCard';
-import { useTheme } from '@contexts/ThemeContext';
 import { usePets } from '@hooks/usePets';
 import { useHealthEvents } from '@hooks/useHealthEvents';
 import { generateAndSharePetPdf } from '@utils/petPdf';
 import { formatIsoDateBR } from '@utils/date';
 import { groupEventsByCategory } from '@utils/healthEvents';
+import { useThemedStyles } from '@hooks/useThemedStyles';
+import { useErrorAlert } from '@hooks/useErrorAlert';
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'PetWallet'>;
   route: RouteProp<RootStackParamList, 'PetWallet'>;
 };
 function SectionTitle({ icon, title }: { icon: string; title: string }) {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles } = useThemedStyles(makeStyles);
   return (
     <View style={styles.sectionTitle}>
       <Text style={{ fontSize: 16 }}>{icon}</Text>
@@ -39,8 +39,7 @@ function SectionTitle({ icon, title }: { icon: string; title: string }) {
   );
 }
 function EventList({ events, emptyLabel }: { events: HealthEvent[]; emptyLabel: string }) {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles } = useThemedStyles(makeStyles);
   if (events.length === 0) {
     return <Text style={styles.listSub}>{emptyLabel}</Text>;
   }
@@ -59,21 +58,16 @@ function EventList({ events, emptyLabel }: { events: HealthEvent[]; emptyLabel: 
   );
 }
 export default function PetWalletScreen({ navigation, route }: Props) {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const [currentPetId, setCurrentPetId] = useState<string | null>(route.params?.petId ?? null);
 
   const { data: pets = [], isLoading: loading, error: petsError } = usePets();
   const currentPet: Pet | null = pets.find((p) => p.id === currentPetId) ?? pets[0] ?? null;
   const { data: events = [], isLoading: loadingEvents, error: eventsError } = useHealthEvents(currentPet?.id);
 
-  useEffect(() => {
-    if (petsError) Alert.alert('Erro ao carregar pets', (petsError as Error).message);
-  }, [petsError]);
+  useErrorAlert(petsError, 'Erro ao carregar pets');
 
-  useEffect(() => {
-    if (eventsError) Alert.alert('Erro ao carregar histórico', (eventsError as Error).message);
-  }, [eventsError]);
+  useErrorAlert(eventsError, 'Erro ao carregar histórico');
   const { vacinas, exames, consultas, outros } = groupEventsByCategory(events);
 
   const [generatingPDF, setGeneratingPDF] = useState(false);

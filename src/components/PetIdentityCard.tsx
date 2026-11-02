@@ -1,14 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useTheme } from '@contexts/ThemeContext';
-import { COLORS, SPACING, FONT_SIZES, getScoreColor } from '@constants/theme';
+import { SPACING, FONT_SIZES, getScoreColor } from '@constants/theme';
 import { Pet } from '@models/Pet';
 import { SPECIES_CONFIG } from '@constants/races';
+import { useThemedStyles } from '@hooks/useThemedStyles';
 export const PetIdentityCard: React.FC<{
   pet: Pet;
 }> = ({ pet }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const scoreColor = getScoreColor(pet.score);
   return (
     <View style={styles.identityCard}>

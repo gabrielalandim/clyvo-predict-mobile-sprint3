@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  View,
   Text,
   TextInput,
   StyleSheet,
@@ -14,14 +13,13 @@ import {
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES } from '@constants/theme';
-import { useTheme } from '@contexts/ThemeContext';
 import { useAuth } from '@contexts/AuthContext';
+import { useThemedStyles } from '@hooks/useThemedStyles';
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Register'>;
 };
 const RegisterScreen: React.FC<Props> = ({ navigation }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const { register, login } = useAuth();
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');

@@ -4,15 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { SPACING, FONT_SIZES } from '@constants/theme';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
-import { useTheme } from '@contexts/ThemeContext';
+import { useThemedStyles } from '@hooks/useThemedStyles';
 interface BottomTabBarProps {
   activeRoute: 'Home' | 'PetWallet' | 'PetHistory' | 'TutorProfile';
   navigation: StackNavigationProp<RootStackParamList>;
   petId?: string;
 }
 export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeRoute, navigation, petId }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   return (
     <View style={styles.bottomTabBar}>
       <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Home')}>

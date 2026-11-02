@@ -20,8 +20,9 @@ import { maskDateInput, isValidDateInput } from '@utils/dateInput';
 import { PetFormData } from '@models/Pet';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@contexts/ThemeContext';
 import { usePet, useCreatePet, useUpdatePet, useAnalisarCadastro } from '@hooks/usePets';
+import { useThemedStyles } from '@hooks/useThemedStyles';
+import { useErrorAlert } from '@hooks/useErrorAlert';
 type AddPetScreenNavigationProp = StackNavigationProp<RootStackParamList, 'AddPet'>;
 type AddPetScreenRouteProp = RouteProp<RootStackParamList, 'AddPet'>;
 interface Props {
@@ -53,8 +54,7 @@ const EMPTY_FORM: PetFormData = {
   bodyCondition: '',
 };
 const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const mode = route.params?.mode ?? 'manual';
   const [formData, setFormData] = useState<PetFormData>(EMPTY_FORM);
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -74,9 +74,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
   const submitting = createPetMutation.isPending || updatePetMutation.isPending;
   const analyzing = analisarCadastroMutation.isPending;
 
-  useEffect(() => {
-    if (petLoadError) Alert.alert('Erro ao carregar pet', (petLoadError as Error).message);
-  }, [petLoadError]);
+  useErrorAlert(petLoadError, 'Erro ao carregar pet');
 
   useEffect(() => {
     if (!editingPet) return;

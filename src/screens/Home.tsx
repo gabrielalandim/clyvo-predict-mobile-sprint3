@@ -11,36 +11,30 @@ import {
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
-import { COLORS, SPACING, FONT_SIZES } from '@constants/theme';
+import { SPACING, FONT_SIZES } from '@constants/theme';
 import { useAuth } from '@contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomTabBar } from '@components/BottomTabBar';
 import { PlansSection } from '@components/PlansSection';
 import { PetCard } from '@components/PetCard';
-import { useTheme } from '@contexts/ThemeContext';
 import { usePets, useDeletePet } from '@hooks/usePets';
+import { useThemedStyles } from '@hooks/useThemedStyles';
+import { useErrorAlert } from '@hooks/useErrorAlert';
+import { useRefetchOnFocus } from '@hooks/useRefetchOnFocus';
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 interface Props {
   navigation: HomeScreenNavigationProp;
 }
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const { session } = useAuth();
 
   const { data: pets = [], isLoading, isRefetching, error, refetch } = usePets();
   const deletePetMutation = useDeletePet();
 
-  React.useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      refetch();
-    });
-    return unsubscribe;
-  }, [navigation, refetch]);
+  useRefetchOnFocus(refetch);
 
-  React.useEffect(() => {
-    if (error) Alert.alert('Erro ao carregar pets', (error as Error).message);
-  }, [error]);
+  useErrorAlert(error, 'Erro ao carregar pets');
 
   const handleDeletePet = (petId: string) => {
     Alert.alert(

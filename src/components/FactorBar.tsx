@@ -1,15 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { FONT_SIZES } from '@constants/theme';
-import { useTheme } from '@contexts/ThemeContext';
+import { useThemedStyles } from '@hooks/useThemedStyles';
 interface FactorBarProps {
   label: string;
   percentage: number;
   color: string;
 }
 export const FactorBar: React.FC<FactorBarProps> = ({ label, percentage, color }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles } = useThemedStyles(makeStyles);
   return (
     <View style={styles.factorContainer}>
       <View style={styles.rowBetween}>

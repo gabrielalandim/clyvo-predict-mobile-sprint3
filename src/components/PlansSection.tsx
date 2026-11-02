@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { SPACING, FONT_SIZES } from '@constants/theme';
 import { PlanDetailsModal } from './PlanDetailsModal';
-import { useTheme } from '@contexts/ThemeContext';
+import { useThemedStyles } from '@hooks/useThemedStyles';
 interface Plan {
   id: 'basic' | 'plus' | 'premium';
   name: string;
@@ -60,8 +60,7 @@ const PLANS_DATA: Plan[] = [
   },
 ];
 export const PlansSection: React.FC = () => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles } = useThemedStyles(makeStyles);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);

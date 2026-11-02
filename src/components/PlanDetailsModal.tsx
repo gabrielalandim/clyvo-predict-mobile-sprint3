@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SPACING, FONT_SIZES } from '@constants/theme';
-import { useTheme } from '@contexts/ThemeContext';
+import { useThemedStyles } from '@hooks/useThemedStyles';
 interface Plan {
   id: 'basic' | 'plus' | 'premium';
   name: string;
@@ -17,8 +17,7 @@ interface PlanDetailsModalProps {
   plan: Plan | null;
 }
 export const PlanDetailsModal: React.FC<PlanDetailsModalProps> = ({ visible, onClose, plan }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles } = useThemedStyles(makeStyles);
   if (!plan) return null;
   return (
     <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={onClose}>

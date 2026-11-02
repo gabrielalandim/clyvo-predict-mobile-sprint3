@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { SPACING, FONT_SIZES } from '@constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme } from '@contexts/ThemeContext';
+import { useThemedStyles } from '@hooks/useThemedStyles';
 interface AnotacaoData {
   id: number;
   texto: string;
@@ -15,8 +15,7 @@ interface NotesSectionProps {
   onDeleteSuccess?: () => void;
 }
 export const NotesSection: React.FC<NotesSectionProps> = ({ petId, anotacoesList, onSaveSuccess, onDeleteSuccess }) => {
-  const { colors: COLORS } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const [anotacao, setAnotacao] = useState('');
   const [savingNote, setSavingNote] = useState(false);
   const handleSaveNote = async () => {
