@@ -86,7 +86,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleConfirmDelete = () => {
     if (!pet) return;
-    confirmDeletePet(pet, () => navigation.navigate('Home'));
+    confirmDeletePet(pet, () => navigation.popTo('Home'));
   };
 
   const handleOpenEventMenu = (evt: (typeof events)[number]) => {

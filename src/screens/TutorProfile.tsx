@@ -105,7 +105,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
 
               <View style={styles.rowDivider} />
 
-              <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('Home')}>
+              <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.popTo('Home')}>
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="paw-outline" size={22} color={COLORS.primary} />
                   <View style={styles.textBlock}>

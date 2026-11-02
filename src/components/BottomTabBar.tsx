@@ -5,52 +5,43 @@ import { SPACING, FONT_SIZES } from '@constants/theme';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
 import { useThemedStyles } from '@hooks/useThemedStyles';
+type TabRoute = 'Home' | 'PetWallet' | 'PetHistory' | 'TutorProfile';
 interface BottomTabBarProps {
-  activeRoute: 'Home' | 'PetWallet' | 'PetHistory' | 'TutorProfile';
+  activeRoute: TabRoute;
   navigation: StackNavigationProp<RootStackParamList>;
   petId?: string;
 }
+const TABS: { route: TabRoute; label: string; icon: React.ComponentProps<typeof Ionicons>['name']; usesPet: boolean }[] = [
+  { route: 'Home', label: 'Home', icon: 'home', usesPet: false },
+  { route: 'PetWallet', label: 'Carteira', icon: 'clipboard-outline', usesPet: true },
+  { route: 'PetHistory', label: 'Histórico', icon: 'bar-chart-outline', usesPet: true },
+  { route: 'TutorProfile', label: 'Perfil', icon: 'person-outline', usesPet: false },
+];
 export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeRoute, navigation, petId }) => {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
+
+  const openTab = (route: TabRoute, usesPet: boolean) => {
+    if (route === activeRoute) return;
+    const params = usesPet && petId ? { petId } : undefined;
+    const alreadyInStack = navigation.getState().routes.some((r) => r.name === route);
+    if (alreadyInStack) {
+      navigation.popTo(route as any, params as any);
+    } else {
+      navigation.navigate(route as any, params as any);
+    }
+  };
+
   return (
     <View style={styles.bottomTabBar}>
-      <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Home')}>
-        <Ionicons name="home" size={24} color={activeRoute === 'Home' ? COLORS.primary : COLORS.textSecondary} />
-        <Text style={[styles.tabLabel, activeRoute === 'Home' && styles.tabLabelActive]}>Home</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.tabItem}
-        onPress={() => navigation.navigate('PetWallet', petId ? { petId } : undefined)}
-      >
-        <Ionicons
-          name="clipboard-outline"
-          size={24}
-          color={activeRoute === 'PetWallet' ? COLORS.primary : COLORS.textSecondary}
-        />
-        <Text style={[styles.tabLabel, activeRoute === 'PetWallet' && styles.tabLabelActive]}>Carteira</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.tabItem}
-        onPress={() => navigation.navigate('PetHistory', petId ? { petId } : undefined)}
-      >
-        <Ionicons
-          name="bar-chart-outline"
-          size={24}
-          color={activeRoute === 'PetHistory' ? COLORS.primary : COLORS.textSecondary}
-        />
-        <Text style={[styles.tabLabel, activeRoute === 'PetHistory' && styles.tabLabelActive]}>Histórico</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('TutorProfile')}>
-        <Ionicons
-          name="person-outline"
-          size={24}
-          color={activeRoute === 'TutorProfile' ? COLORS.primary : COLORS.textSecondary}
-        />
-        <Text style={[styles.tabLabel, activeRoute === 'TutorProfile' && styles.tabLabelActive]}>Perfil</Text>
-      </TouchableOpacity>
+      {TABS.map((tab) => {
+        const isActive = activeRoute === tab.route;
+        return (
+          <TouchableOpacity key={tab.route} style={styles.tabItem} onPress={() => openTab(tab.route, tab.usesPet)}>
+            <Ionicons name={tab.icon} size={24} color={isActive ? COLORS.primary : COLORS.textSecondary} />
+            <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>{tab.label}</Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 };

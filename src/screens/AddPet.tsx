@@ -57,7 +57,8 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
       Alert.alert(result.title, result.message);
       return;
     }
-    Alert.alert('Sucesso!', result.message, [{ text: 'Ver meus pets', onPress: () => navigation.navigate('Home') }]);
+    const goNext = () => (mode === 'edit' ? navigation.goBack() : navigation.popTo('Home'));
+    Alert.alert('Sucesso!', result.message, [{ text: mode === 'edit' ? 'Ver pet' : 'Ver meus pets', onPress: goNext }]);
   };
   return (
     <View style={styles.container}>
