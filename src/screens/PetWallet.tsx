@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -13,16 +13,12 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES } from '@constants/theme';
-import { Pet } from '@models/Pet';
 import { HealthEvent, getEventTypeConfig } from '@models/HealthEvent';
 import { BottomTabBar } from '@components/BottomTabBar';
 import { WalletHeader } from '@components/WalletHeader';
 import { PetIdentityCard } from '@components/PetIdentityCard';
-import { usePets } from '@hooks/usePets';
-import { useHealthEvents } from '@hooks/useHealthEvents';
-import { generateAndSharePetPdf } from '@utils/petPdf';
+import { usePetWallet } from '@hooks/usePetWallet';
 import { formatIsoDateBR } from '@utils/date';
-import { groupEventsByCategory } from '@utils/healthEvents';
 import { useThemedStyles } from '@hooks/useThemedStyles';
 import { useErrorAlert } from '@hooks/useErrorAlert';
 type Props = {
@@ -59,28 +55,25 @@ function EventList({ events, emptyLabel }: { events: HealthEvent[]; emptyLabel: 
 }
 export default function PetWalletScreen({ navigation, route }: Props) {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
-  const [currentPetId, setCurrentPetId] = useState<string | null>(route.params?.petId ?? null);
-
-  const { data: pets = [], isLoading: loading, error: petsError } = usePets();
-  const currentPet: Pet | null = pets.find((p) => p.id === currentPetId) ?? pets[0] ?? null;
-  const { data: events = [], isLoading: loadingEvents, error: eventsError } = useHealthEvents(currentPet?.id);
+  const {
+    pets,
+    isLoading: loading,
+    loadingEvents,
+    petsError,
+    eventsError,
+    currentPet,
+    selectPet,
+    eventsByCategory: { vacinas, exames, consultas, outros },
+    generatingPdf,
+    generatePdf,
+  } = usePetWallet(route.params?.petId);
 
   useErrorAlert(petsError, 'Erro ao carregar pets');
-
   useErrorAlert(eventsError, 'Erro ao carregar histórico');
-  const { vacinas, exames, consultas, outros } = groupEventsByCategory(events);
 
-  const [generatingPDF, setGeneratingPDF] = useState(false);
   const handleGeneratePDF = async () => {
-    if (!currentPet) return;
-    setGeneratingPDF(true);
-    try {
-      await generateAndSharePetPdf(currentPet, events);
-    } catch (error: any) {
-      Alert.alert('Erro ao gerar PDF', error.message ?? 'Não foi possível gerar o PDF agora.');
-    } finally {
-      setGeneratingPDF(false);
-    }
+    const errorMessage = await generatePdf();
+    if (errorMessage) Alert.alert('Erro ao gerar PDF', errorMessage);
   };
 
   if (loading) {
@@ -97,9 +90,9 @@ export default function PetWalletScreen({ navigation, route }: Props) {
           pets={pets}
           currentPet={currentPet}
           onBack={() => navigation.goBack()}
-          onSelectPet={(p) => setCurrentPetId(p.id)}
+          onSelectPet={selectPet}
           onGeneratePDF={currentPet ? handleGeneratePDF : undefined}
-          generatingPDF={generatingPDF}
+          generatingPDF={generatingPdf}
         />
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>

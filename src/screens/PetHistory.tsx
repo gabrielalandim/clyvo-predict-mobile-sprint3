@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -9,97 +9,44 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES, getScoreColor } from '@constants/theme';
 import { SPECIES_CONFIG } from '@constants/races';
-import { getEventTypeConfig, HealthEvent, isPreventiveEvent } from '@models/HealthEvent';
+import { getEventTypeConfig } from '@models/HealthEvent';
 import { getScoreStatus } from '@utils/score';
-import { formatAgeFromBirthDate, formatIsoDateBR, formatYears, parseIsoDate } from '@utils/date';
+import { formatAgeFromBirthDate, formatIsoDateBR, formatYears } from '@utils/date';
+import { HISTORY_PERIODS } from '@utils/scoreHistory';
 import { BottomTabBar } from '@components/BottomTabBar';
-import { usePets } from '@hooks/usePets';
-import { useHealthEvents } from '@hooks/useHealthEvents';
+import { usePetScoreHistory } from '@hooks/usePetScoreHistory';
 import { useThemedStyles } from '@hooks/useThemedStyles';
 import { useErrorAlert } from '@hooks/useErrorAlert';
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'PetHistory'>;
+  route: RouteProp<RootStackParamList, 'PetHistory'>;
 };
-const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-type Period = '1m' | '3m' | '6m';
-const PERIOD_MONTHS: Record<Period, number> = { '1m': 1, '3m': 3, '6m': 6 };
-const CHART_MONTHS_BACK = 6;
-export default function PetHistoryScreen({ navigation }: Props) {
+export default function PetHistoryScreen({ navigation, route }: Props) {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
-  const [petSel, setPetSel] = useState<string>('');
-  const [period, setPeriod] = useState<Period>('6m');
-
-  const { data: pets = [], isLoading: loading, error: petsError } = usePets();
-  const { data: events = [], error: eventsError } = useHealthEvents(petSel || undefined);
-
-  useEffect(() => {
-    if (pets.length > 0 && !petSel) {
-      setPetSel(pets[0].id);
-    }
-  }, [pets, petSel]);
+  const {
+    pets,
+    isLoading: loading,
+    petsError,
+    eventsError,
+    selectedPetId: petSel,
+    setSelectedPetId: setPetSel,
+    currentPet,
+    currentScore,
+    period,
+    setPeriod,
+    filteredEvents,
+    periodDelta,
+    chart,
+    breakdown: breakdownItems,
+  } = usePetScoreHistory(route.params?.petId);
 
   useErrorAlert(petsError, 'Erro ao carregar pets');
-
   useErrorAlert(eventsError, 'Erro ao carregar histórico');
 
-  const currentPet = pets.find((p) => p.id === petSel);
-  const currentScore = currentPet?.score ?? 70;
-  const filteredEvents = useMemo(() => {
-    const monthsBack = PERIOD_MONTHS[period];
-    const cutoff = new Date();
-    cutoff.setMonth(cutoff.getMonth() - monthsBack);
-    return events.filter((e) => parseIsoDate(e.dataEvento) >= cutoff);
-  }, [events, period]);
-  const periodDelta = filteredEvents.reduce((acc, curr) => acc + curr.deltaScore, 0);
-  const chartData = useMemo(() => {
-    const points: number[] = [];
-    const now = new Date();
-    for (let i = CHART_MONTHS_BACK; i >= 0; i--) {
-      const boundary = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
-      const futureDeltaSum = events
-        .filter((e) => parseIsoDate(e.dataEvento) >= boundary)
-        .reduce((acc, e) => acc + e.deltaScore, 0);
-      const score = Math.max(0, Math.min(100, currentScore - futureDeltaSum));
-      points.push(score);
-    }
-    return points;
-  }, [events, currentScore]);
-  const maxChart = Math.max(...chartData);
-  const minChart = Math.max(0, Math.min(...chartData) - 5);
-  const currentMonthIdx = new Date().getMonth();
-  const displayMonths = Array.from({ length: CHART_MONTHS_BACK + 1 }, (_, i) => {
-    const idx = (currentMonthIdx - CHART_MONTHS_BACK + i + 12) % 12;
-    return MONTHS[idx];
-  });
-  const PERIODS: {
-    k: Period;
-    label: string;
-  }[] = [
-    { k: '1m', label: '1 mês' },
-    { k: '3m', label: '3 meses' },
-    { k: '6m', label: '6 meses' },
-  ];
-  const breakdownItems = useMemo(() => {
-    const countByType = (type: HealthEvent['tipoEvento']) => filteredEvents.filter((e) => e.tipoEvento === type).length;
-    const items = [
-      { label: 'Vacinas', icon: '💉', count: countByType('VACINA') },
-      { label: 'Exames', icon: '🔬', count: countByType('EXAME') },
-      { label: 'Consultas', icon: '🩺', count: countByType('CONSULTA_ROTINA') },
-      {
-        label: 'Ocorrências',
-        icon: '⚠️',
-        count: filteredEvents.filter((e) => !isPreventiveEvent(e.tipoEvento)).length,
-      },
-    ];
-    const total = filteredEvents.length;
-    return items.map((item) => ({
-      ...item,
-      pct: total > 0 ? Math.round((item.count / total) * 100) : 0,
-    }));
-  }, [filteredEvents]);
   if (loading) {
     return (
       <SafeAreaView style={[styles.safe, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -209,14 +156,14 @@ export default function PetHistoryScreen({ navigation }: Props) {
             </View>
 
             <View style={styles.periodRow}>
-              {PERIODS.map((p) => (
+              {HISTORY_PERIODS.map((p) => (
                 <TouchableOpacity
-                  key={p.k}
-                  style={[styles.periodBtn, period === p.k && styles.periodBtnActive]}
-                  onPress={() => setPeriod(p.k)}
+                  key={p.key}
+                  style={[styles.periodBtn, period === p.key && styles.periodBtnActive]}
+                  onPress={() => setPeriod(p.key)}
                   activeOpacity={0.8}
                 >
-                  <Text style={[styles.periodText, period === p.k && styles.periodTextActive]}>{p.label}</Text>
+                  <Text style={[styles.periodText, period === p.key && styles.periodTextActive]}>{p.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -224,14 +171,14 @@ export default function PetHistoryScreen({ navigation }: Props) {
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Evolução do Score (últimos 6 meses)</Text>
               <View style={styles.chart}>
-                {chartData.map((val, i) => {
-                  const height = maxChart === minChart ? 100 : ((val - minChart) / (maxChart - minChart)) * 100;
+                {chart.points.map((val, i) => {
+                  const height = chart.max === chart.min ? 100 : ((val - chart.min) / (chart.max - chart.min)) * 100;
                   const color = getScoreColor(val);
                   return (
                     <View key={i} style={styles.chartBar}>
                       <Text style={[styles.chartValue, { color }]}>{val}</Text>
                       <View style={[styles.barFill, { height: `${height}%` as any, backgroundColor: color }]} />
-                      <Text style={styles.chartMonth}>{displayMonths[i]}</Text>
+                      <Text style={styles.chartMonth}>{chart.months[i]}</Text>
                     </View>
                   );
                 })}

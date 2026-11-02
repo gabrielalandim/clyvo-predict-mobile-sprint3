@@ -8,10 +8,7 @@ import { BottomTabBar } from '@components/BottomTabBar';
 import { useTheme } from '@contexts/ThemeContext';
 import { useAuth } from '@contexts/AuthContext';
 import { useState } from 'react';
-import { usePets } from '@hooks/usePets';
-import { useQueries } from '@tanstack/react-query';
-import { healthEventKeys } from '@hooks/useHealthEvents';
-import { healthEventService } from '@services/healthEventService';
+import { useTutorStats } from '@hooks/useTutorStats';
 type TutorProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'TutorProfile'>;
 type Props = {
   navigation: TutorProfileScreenNavigationProp;
@@ -23,16 +20,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
   const [notifications, setNotifications] = useState<boolean>(true);
   const [whatsappAlerts, setWhatsappAlerts] = useState<boolean>(true);
 
-  const { data: pets = [] } = usePets();
-  const petCount = pets.length;
-
-  const eventQueries = useQueries({
-    queries: pets.map((p) => ({
-      queryKey: healthEventKeys.byPet(p.id),
-      queryFn: () => healthEventService.listByPet(p.id),
-    })),
-  });
-  const eventCount = eventQueries.reduce((total, q) => total + (q.data?.length ?? 0), 0);
+  const { petCount, eventCount } = useTutorStats();
 
   const handleLogout = () => {
     Alert.alert('Sair da Conta', 'Tem certeza que deseja fechar sua sessão?', [
