@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -15,12 +15,9 @@ import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES } from '@constants/theme';
 import { RACES_BY_SPECIES, SPECIES_CONFIG, getBreedIcon, Species } from '@constants/races';
-import { normalizeSpecies } from '@utils/species';
-import { maskDateInput, isValidDateInput } from '@utils/dateInput';
-import { PetFormData } from '@models/Pet';
-import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { usePet, useCreatePet, useUpdatePet, useAnalisarCadastro } from '@hooks/usePets';
+import { usePetForm } from '@hooks/usePetForm';
+import { usePhotoPicker } from '@hooks/usePhotoPicker';
 import { useThemedStyles } from '@hooks/useThemedStyles';
 import { useErrorAlert } from '@hooks/useErrorAlert';
 type AddPetScreenNavigationProp = StackNavigationProp<RootStackParamList, 'AddPet'>;
@@ -29,216 +26,38 @@ interface Props {
   navigation: AddPetScreenNavigationProp;
   route: AddPetScreenRouteProp;
 }
-interface ValidationErrors {
-  name?: boolean;
-  breed?: boolean;
-  age?: boolean;
-  weight?: boolean;
-}
 const BODY_CONDITIONS = ['Abaixo do peso', 'Ideal', 'Acima do peso'];
 const SIZES = ['Pequeno', 'Médio', 'Grande'];
-const EMPTY_FORM: PetFormData = {
-  name: '',
-  species: 'dog',
-  breed: '',
-  age: '',
-  birthDate: '',
-  weight: '',
-  sex: 'male',
-  neutered: false,
-  microchip: '',
-  observations: '',
-  photoUri: '',
-  color: '',
-  size: '',
-  bodyCondition: '',
-};
 const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const mode = route.params?.mode ?? 'manual';
-  const [formData, setFormData] = useState<PetFormData>(EMPTY_FORM);
-  const [errors, setErrors] = useState<ValidationErrors>({});
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [isCustomBreed, setIsCustomBreed] = useState(false);
-  const [aiApplied, setAiApplied] = useState(false);
-  const [pesoEstimado, setPesoEstimado] = useState<{
-    min: number;
-    max: number;
-  } | null>(null);
-  const [iaConfianca, setIaConfianca] = useState<number | null>(null);
-  const editingPetId = mode === 'edit' ? route.params?.petId : undefined;
-  const { data: editingPet, isLoading: loadingPet, error: petLoadError } = usePet(editingPetId);
-  const createPetMutation = useCreatePet();
-  const updatePetMutation = useUpdatePet();
-  const analisarCadastroMutation = useAnalisarCadastro();
-  const submitting = createPetMutation.isPending || updatePetMutation.isPending;
-  const analyzing = analisarCadastroMutation.isPending;
+  const form = usePetForm(mode, route.params?.petId);
+  const { formData, errors, isCustomBreed, analyzing, submitting, loadingPet } = form;
+  const { choosePhoto } = usePhotoPicker();
 
-  useErrorAlert(petLoadError, 'Erro ao carregar pet');
+  useErrorAlert(form.loadError, 'Erro ao carregar pet');
 
-  useEffect(() => {
-    if (!editingPet) return;
-    setFormData({
-      name: editingPet.name,
-      species: editingPet.species,
-      breed: editingPet.breed,
-      age: String(editingPet.age),
-      birthDate: editingPet.birthDate ?? '',
-      weight: String(editingPet.weight),
-      sex: editingPet.sex,
-      neutered: editingPet.neutered,
-      microchip: editingPet.microchip ?? '',
-      observations: editingPet.observations ?? '',
-      photoUri: editingPet.photoUri ?? '',
-      color: editingPet.color ?? '',
-      size: editingPet.size ?? '',
-      bodyCondition: editingPet.bodyCondition ?? '',
-    });
-    const knownBreeds = RACES_BY_SPECIES[editingPet.species] ?? [];
-    if (!knownBreeds.includes(editingPet.breed)) setIsCustomBreed(true);
-  }, [editingPet]);
-  const getBreedPlaceholder = () => {
-    switch (formData.species) {
-      case 'dog':
-        return 'Selecione a raça (Ex: Golden Retriever)';
-      case 'cat':
-        return 'Selecione a raça (Ex: Persa)';
-      default:
-        return 'Selecione a raça (Ex: Calopsita)';
-    }
-  };
-  const runAiAnalysis = async (uri: string) => {
-    try {
-      const resposta = await analisarCadastroMutation.mutateAsync(uri);
-      const analise = resposta.analise_cadastro;
-      if (!analise) {
+  const handleChoosePhoto = () =>
+    choosePhoto(async (uri) => {
+      const result = await form.setPhoto(uri);
+      if (!result) return;
+      if (result.ok) {
         Alert.alert(
-          'IA não identificou o pet',
-          resposta.aviso || 'Não conseguimos identificar as características a partir dessa foto. Preencha manualmente.',
+          'Sugestão da IA aplicada',
+          'Preenchemos o formulário com o que a IA identificou na foto. Confira e edite antes de salvar — principalmente o peso, que é só uma estimativa.',
         );
-        return;
+      } else {
+        Alert.alert(result.title, result.message);
       }
-      const species = normalizeSpecies(analise.especie);
-      const knownBreeds = RACES_BY_SPECIES[species] ?? [];
-      const breedMatch = knownBreeds.find((b) => b.toLowerCase() === (analise.raca_estimada ?? '').toLowerCase());
-      setFormData((prev) => ({
-        ...prev,
-        species,
-        breed: breedMatch ?? analise.raca_estimada ?? prev.breed,
-        color: analise.cor_predominante ?? prev.color,
-        size: analise.porte_estimado ?? prev.size,
-        bodyCondition: analise.condicao_corporal ?? prev.bodyCondition,
-      }));
-      if (!breedMatch && analise.raca_estimada) setIsCustomBreed(true);
-      setPesoEstimado(
-        analise.faixa_peso_estimada_kg
-          ? { min: analise.faixa_peso_estimada_kg.min, max: analise.faixa_peso_estimada_kg.max }
-          : null,
-      );
-      setIaConfianca(typeof analise.confianca === 'number' ? analise.confianca : null);
-      setAiApplied(true);
-      Alert.alert(
-        'Sugestão da IA aplicada',
-        'Preenchemos o formulário com o que a IA identificou na foto. Confira e edite antes de salvar — principalmente o peso, que é só uma estimativa.',
-      );
-    } catch (error: any) {
-      Alert.alert('Erro ao analisar foto', error.message);
-    }
-  };
-  const handlePickImage = async (fromCamera: boolean) => {
-    const permission = fromCamera
-      ? await ImagePicker.requestCameraPermissionsAsync()
-      : await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Permissão necessária', 'Precisamos de acesso à câmera/fotos para continuar.');
+    });
+
+  const handleSubmit = async () => {
+    const result = await form.submit();
+    if (!result.ok) {
+      Alert.alert(result.title, result.message);
       return;
     }
-    const result = fromCamera
-      ? await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.7 })
-      : await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 0.7,
-        });
-    if (!result.canceled && result.assets?.length) {
-      const uri = result.assets[0].uri;
-      setFormData((prev) => ({ ...prev, photoUri: uri }));
-      if (mode === 'photo') {
-        await runAiAnalysis(uri);
-      }
-    }
-  };
-  const choosePhotoSource = () => {
-    Alert.alert('Foto do pet', 'Como você quer adicionar a foto?', [
-      { text: 'Tirar foto', onPress: () => handlePickImage(true) },
-      { text: 'Escolher da galeria', onPress: () => handlePickImage(false) },
-      { text: 'Cancelar', style: 'cancel' },
-    ]);
-  };
-  const handleAgeChange = (text: string) => {
-    if (errors.age) setErrors({ ...errors, age: false });
-    const cleaned = text.replace(/\D/g, '');
-    setFormData({ ...formData, age: cleaned });
-  };
-  const handleBirthDateChange = (text: string) => {
-    setFormData({ ...formData, birthDate: maskDateInput(text) });
-  };
-  const handleWeightChange = (text: string) => {
-    if (errors.weight) setErrors({ ...errors, weight: false });
-    const cleaned = text.replace(',', '.');
-    if (/^\d*\.?\d*$/.test(cleaned)) {
-      const num = parseFloat(cleaned);
-      setFormData({ ...formData, weight: !isNaN(num) && num > 150 ? '150' : cleaned });
-    }
-  };
-  const selectBreed = (breed: string) => {
-    setFormData({ ...formData, breed });
-    setErrors({ ...errors, breed: false });
-    setShowDropdown(false);
-  };
-  const handleSubmit = () => {
-    const newErrors: ValidationErrors = {};
-    if (!formData.name.trim()) newErrors.name = true;
-    if (!formData.breed.trim()) newErrors.breed = true;
-    if (!formData.birthDate && (!formData.age || parseInt(formData.age, 10) < 0)) newErrors.age = true;
-    if (formData.birthDate && !isValidDateInput(formData.birthDate)) newErrors.age = true;
-    if (!formData.weight || isNaN(parseFloat(formData.weight.replace(',', '.')))) newErrors.weight = true;
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      Alert.alert(
-        'Erro',
-        newErrors.age && formData.birthDate
-          ? 'A data de nascimento informada não é válida (dd/mm/aaaa).'
-          : 'Por favor, preencha corretamente os campos obrigatórios marcados em vermelho.',
-      );
-      return;
-    }
-    if (mode === 'edit' && route.params?.petId) {
-      updatePetMutation.mutate(
-        { id: route.params.petId, form: formData },
-        {
-          onSuccess: (pet) => {
-            Alert.alert('Sucesso!', `${pet.name} foi atualizado!`, [
-              { text: 'Ver meus pets', onPress: () => navigation.navigate('Home') },
-            ]);
-          },
-          onError: (error: any) => Alert.alert('Erro ao atualizar', error.message),
-        },
-      );
-    } else {
-      createPetMutation.mutate(
-        formData,
-        {
-          onSuccess: (pet) => {
-            Alert.alert('Sucesso!', `${pet.name} foi cadastrado!`, [
-              { text: 'Ver meus pets', onPress: () => navigation.navigate('Home') },
-            ]);
-          },
-          onError: (error: any) => Alert.alert('Erro ao cadastrar', error.message),
-        },
-      );
-    }
+    Alert.alert('Sucesso!', result.message, [{ text: 'Ver meus pets', onPress: () => navigation.navigate('Home') }]);
   };
   return (
     <View style={styles.container}>
@@ -271,7 +90,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
           <View style={styles.photoUploadContainer}>
             <TouchableOpacity
               style={styles.photoCircle}
-              onPress={choosePhotoSource}
+              onPress={handleChoosePhoto}
               activeOpacity={0.8}
               disabled={analyzing}
             >
@@ -295,11 +114,11 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
             )}
           </View>
 
-          {aiApplied && (
+          {form.aiApplied && (
             <View style={styles.aiBanner}>
               <Ionicons name="sparkles" size={16} color={COLORS.secondary} />
               <Text style={styles.aiBannerText}>
-                Preenchido pela IA{iaConfianca != null ? ` (confiança ${Math.round(iaConfianca * 100)}%)` : ''}. Revise
+                Preenchido pela IA{form.aiConfidence != null ? ` (confiança ${Math.round(form.aiConfidence * 100)}%)` : ''}. Revise
                 antes de salvar.
               </Text>
             </View>
@@ -311,10 +130,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
             placeholder="Thor"
             placeholderTextColor={COLORS.textSecondary}
             value={formData.name}
-            onChangeText={(t) => {
-              setFormData({ ...formData, name: t });
-              if (errors.name) setErrors({ ...errors, name: false });
-            }}
+            onChangeText={form.setName}
           />
 
           <Text style={styles.label}>Espécie *</Text>
@@ -331,11 +147,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
                     isActive && { borderColor: cfg.color, backgroundColor: `${cfg.color}12` },
                     isCustomBreed && { opacity: 0.4, borderColor: COLORS.border },
                   ]}
-                  onPress={() => {
-                    setFormData({ ...formData, species: sp, breed: '' });
-                    setErrors({ ...errors, breed: false });
-                    setShowDropdown(false);
-                  }}
+                  onPress={() => form.selectSpecies(sp)}
                 >
                   <Text style={{ fontSize: 18 }}>{cfg.emoji}</Text>
                   <Text
@@ -354,12 +166,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
 
           <TouchableOpacity
             style={styles.customToggleBtn}
-            onPress={() => {
-              setIsCustomBreed(!isCustomBreed);
-              setFormData({ ...formData, breed: '' });
-              setErrors({ ...errors, breed: false });
-              setShowDropdown(false);
-            }}
+            onPress={form.toggleCustomBreed}
             activeOpacity={0.7}
           >
             <Text style={styles.customToggleText}>
@@ -375,16 +182,13 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
               placeholderTextColor={COLORS.textSecondary}
               value={formData.breed}
               maxLength={60}
-              onChangeText={(t) => {
-                setFormData({ ...formData, breed: t });
-                if (errors.breed) setErrors({ ...errors, breed: false });
-              }}
+              onChangeText={form.setCustomBreed}
             />
           ) : (
             <View>
               <TouchableOpacity
                 style={[styles.pickerSelector, errors.breed && styles.inputError]}
-                onPress={() => setShowDropdown(!showDropdown)}
+                onPress={form.toggleBreedDropdown}
               >
                 {formData.breed ? (
                   <View style={styles.selectedBreedRow}>
@@ -392,23 +196,23 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
                     <Text style={styles.pickerText}>{formData.breed}</Text>
                   </View>
                 ) : (
-                  <Text style={[styles.pickerText, { color: COLORS.textSecondary }]}>{getBreedPlaceholder()}</Text>
+                  <Text style={[styles.pickerText, { color: COLORS.textSecondary }]}>{form.breedPlaceholder}</Text>
                 )}
                 <Ionicons
-                  name={showDropdown ? 'chevron-up' : 'chevron-down'}
+                  name={form.showBreedDropdown ? 'chevron-up' : 'chevron-down'}
                   size={16}
                   color={errors.breed ? '#FF3B30' : COLORS.textSecondary}
                 />
               </TouchableOpacity>
 
-              {showDropdown && (
+              {form.showBreedDropdown && (
                 <View style={styles.dropdownContainer}>
                   <ScrollView nestedScrollEnabled style={{ maxHeight: 240 }} showsVerticalScrollIndicator>
                     {RACES_BY_SPECIES[formData.species]?.map((breed) => (
                       <TouchableOpacity
                         key={breed}
                         style={[styles.dropdownItem, breed === formData.breed && styles.dropdownItemActive]}
-                        onPress={() => selectBreed(breed)}
+                        onPress={() => form.selectBreed(breed)}
                       >
                         <Text style={styles.dropdownEmoji}>{getBreedIcon(formData.species, breed)}</Text>
                         <Text
@@ -446,7 +250,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
                 maxLength={2}
                 value={formData.age}
                 editable={!formData.birthDate}
-                onChangeText={handleAgeChange}
+                onChangeText={form.setAge}
               />
             </View>
             <View style={[styles.flexInput, { marginLeft: SPACING.md }]}>
@@ -458,11 +262,11 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
                 keyboardType="numeric"
                 maxLength={6}
                 value={formData.weight}
-                onChangeText={handleWeightChange}
+                onChangeText={form.setWeight}
               />
-              {pesoEstimado && (
+              {form.estimatedWeight && (
                 <Text style={styles.realtimeAgeText}>
-                  Peso estimado pela IA: {pesoEstimado.min} a {pesoEstimado.max} kg
+                  Peso estimado pela IA: {form.estimatedWeight.min} a {form.estimatedWeight.max} kg
                 </Text>
               )}
             </View>
@@ -476,7 +280,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
             keyboardType="numeric"
             maxLength={10}
             value={formData.birthDate}
-            onChangeText={handleBirthDateChange}
+            onChangeText={form.setBirthDate}
           />
 
           {mode === 'photo' && (
@@ -487,7 +291,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
                 placeholder="Ex: Caramelo"
                 placeholderTextColor={COLORS.textSecondary}
                 value={formData.color}
-                onChangeText={(t) => setFormData({ ...formData, color: t })}
+                onChangeText={(t) => form.updateField('color', t)}
               />
 
               <Text style={styles.label}>Porte</Text>
@@ -502,7 +306,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
                         backgroundColor: `${COLORS.primary}12`,
                       },
                     ]}
-                    onPress={() => setFormData({ ...formData, size: sizeOption })}
+                    onPress={() => form.updateField('size', sizeOption)}
                   >
                     <Text
                       style={[
@@ -528,7 +332,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
                         backgroundColor: `${COLORS.primary}12`,
                       },
                     ]}
-                    onPress={() => setFormData({ ...formData, bodyCondition: cond })}
+                    onPress={() => form.updateField('bodyCondition', cond)}
                   >
                     <Text
                       style={[
@@ -548,13 +352,13 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
           <View style={styles.chips}>
             <TouchableOpacity
               style={[styles.chip, formData.sex === 'male' && styles.chipActiveMale]}
-              onPress={() => setFormData({ ...formData, sex: 'male' })}
+              onPress={() => form.updateField('sex', 'male')}
             >
               <Text style={styles.chipText}>♂️ Macho</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.chip, formData.sex === 'female' && styles.chipActiveFemale]}
-              onPress={() => setFormData({ ...formData, sex: 'female' })}
+              onPress={() => form.updateField('sex', 'female')}
             >
               <Text style={styles.chipText}>♀️ Fêmea</Text>
             </TouchableOpacity>
@@ -564,13 +368,13 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
           <View style={styles.chips}>
             <TouchableOpacity
               style={[styles.chip, formData.neutered ? styles.chipActiveYes : styles.chipInactive]}
-              onPress={() => setFormData({ ...formData, neutered: true })}
+              onPress={() => form.updateField('neutered', true)}
             >
               <Text style={[styles.chipText, formData.neutered && { color: '#2E7D32' }]}>Sim</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.chip, !formData.neutered ? styles.chipActiveNo : styles.chipInactive]}
-              onPress={() => setFormData({ ...formData, neutered: false })}
+              onPress={() => form.updateField('neutered', false)}
             >
               <Text style={[styles.chipText, !formData.neutered && { color: '#D32F2F' }]}>Não</Text>
             </TouchableOpacity>
@@ -584,7 +388,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
             keyboardType="numeric"
             maxLength={15}
             value={formData.microchip}
-            onChangeText={(t) => setFormData({ ...formData, microchip: t.replace(/\D/g, '') })}
+            onChangeText={form.setMicrochip}
           />
 
           <View style={styles.labelRow}>
@@ -600,7 +404,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
             maxLength={300}
             textAlignVertical="top"
             value={formData.observations}
-            onChangeText={(t) => setFormData({ ...formData, observations: t })}
+            onChangeText={(t) => form.updateField('observations', t)}
           />
 
           <View style={{ height: 40 }} />
