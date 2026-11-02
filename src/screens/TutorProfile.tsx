@@ -9,6 +9,8 @@ import { useTheme } from '@contexts/ThemeContext';
 import { useAuth } from '@contexts/AuthContext';
 import { useState } from 'react';
 import { useTutorStats } from '@hooks/useTutorStats';
+import { PlanDetailsModal } from '@components/PlanDetailsModal';
+import { getPlan, priceFor, PricedPlan } from '@constants/plans';
 type TutorProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'TutorProfile'>;
 type Props = {
   navigation: TutorProfileScreenNavigationProp;
@@ -21,6 +23,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
   const [whatsappAlerts, setWhatsappAlerts] = useState<boolean>(true);
 
   const { petCount, eventCount } = useTutorStats();
+  const [planDetails, setPlanDetails] = useState<PricedPlan | null>(null);
 
   const handleLogout = () => {
     Alert.alert('Sair da Conta', 'Tem certeza que deseja fechar sua sessão?', [
@@ -140,7 +143,11 @@ export default function TutorProfileScreen({ navigation }: Props) {
                   <Text style={styles.premiumSubtitle}>Até 3 pets · Score básico</Text>
                 </View>
               </View>
-              <TouchableOpacity style={styles.premiumButton} activeOpacity={0.8}>
+              <TouchableOpacity
+                style={styles.premiumButton}
+                activeOpacity={0.8}
+                onPress={() => setPlanDetails(priceFor(getPlan('premium'), 'monthly'))}
+              >
                 <Text style={styles.premiumButtonText}>Ver Premium</Text>
               </TouchableOpacity>
             </View>
@@ -202,7 +209,11 @@ export default function TutorProfileScreen({ navigation }: Props) {
 
             <Text style={styles.sectionHeader}>SUPORTE & LEGAL</Text>
             <View style={styles.menuGroup}>
-              <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('Info', { topic: 'help' })}
+              >
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="help-circle-outline" size={22} color={COLORS.primary} />
                   <View style={styles.textBlock}>
@@ -215,7 +226,11 @@ export default function TutorProfileScreen({ navigation }: Props) {
 
               <View style={styles.rowDivider} />
 
-              <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('Info', { topic: 'terms' })}
+              >
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="document-text-outline" size={22} color={COLORS.primary} />
                   <View style={styles.textBlock}>
@@ -228,7 +243,11 @@ export default function TutorProfileScreen({ navigation }: Props) {
 
               <View style={styles.rowDivider} />
 
-              <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('Info', { topic: 'privacy' })}
+              >
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="shield-checkmark-outline" size={22} color={COLORS.primary} />
                   <View style={styles.textBlock}>
@@ -262,6 +281,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
           </View>
         </ScrollView>
 
+        <PlanDetailsModal visible={!!planDetails} plan={planDetails} onClose={() => setPlanDetails(null)} />
         <BottomTabBar activeRoute="TutorProfile" navigation={navigation} petId="" />
       </View>
     </SafeAreaView>

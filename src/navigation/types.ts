@@ -1,4 +1,5 @@
 import { TipoEvento } from '@models/HealthEvent';
+import { InfoTopic } from '@constants/infoContent';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -26,4 +27,5 @@ export type RootStackParamList = {
   PetWallet: { petId?: string } | undefined;
   TutorProfile: undefined;
   EditProfile: { mode: 'profile' | 'password' };
+  Info: { topic: InfoTopic };
 };

@@ -3,18 +3,11 @@ import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { SPACING, FONT_SIZES } from '@constants/theme';
 import { useThemedStyles } from '@hooks/useThemedStyles';
-interface Plan {
-  id: 'basic' | 'plus' | 'premium';
-  name: string;
-  price: string;
-  description: string;
-  color: string;
-  features: string[];
-}
+import { PricedPlan } from '@constants/plans';
 interface PlanDetailsModalProps {
   visible: boolean;
   onClose: () => void;
-  plan: Plan | null;
+  plan: PricedPlan | null;
 }
 export const PlanDetailsModal: React.FC<PlanDetailsModalProps> = ({ visible, onClose, plan }) => {
   const { styles } = useThemedStyles(makeStyles);
@@ -41,12 +34,9 @@ export const PlanDetailsModal: React.FC<PlanDetailsModalProps> = ({ visible, onC
           </ScrollView>
 
           <View style={styles.modalFooter}>
+            <Text style={styles.footerNote}>Planos pagos em fase de lançamento pela Clyvo.</Text>
             <TouchableOpacity style={[styles.actionButton, { backgroundColor: plan.color }]} onPress={onClose}>
-              <Text style={styles.actionButtonText}>Contratar Plano</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.closeModalButton} onPress={onClose}>
-              <Text style={styles.closeModalButtonText}>Fechar</Text>
+              <Text style={styles.actionButtonText}>Entendi</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -139,15 +129,10 @@ const makeStyles = (COLORS: any) =>
       fontSize: FONT_SIZES.md,
       fontWeight: '700',
     },
-    closeModalButton: {
-      width: '100%',
-      padding: SPACING.sm,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    closeModalButtonText: {
+    footerNote: {
+      fontSize: FONT_SIZES.sm,
       color: COLORS.textSecondary,
-      fontSize: FONT_SIZES.md,
-      fontWeight: '600',
+      textAlign: 'center',
+      marginBottom: SPACING.sm,
     },
   });

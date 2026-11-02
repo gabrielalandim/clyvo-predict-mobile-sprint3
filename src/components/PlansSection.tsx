@@ -3,75 +3,13 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { SPACING, FONT_SIZES } from '@constants/theme';
 import { PlanDetailsModal } from './PlanDetailsModal';
+import { BillingCycle, Plan, PLANS, PricedPlan, priceFor } from '@constants/plans';
 import { useThemedStyles } from '@hooks/useThemedStyles';
-interface Plan {
-  id: 'basic' | 'plus' | 'premium';
-  name: string;
-  monthlyPrice: string;
-  annualPrice: string;
-  description: string;
-  color: string;
-  features: string[];
-}
-const PLANS_DATA: Plan[] = [
-  {
-    id: 'basic',
-    name: 'Basic',
-    monthlyPrice: 'Gratuito',
-    annualPrice: 'Gratuito',
-    description: 'Essencial para começar a cuidar do seu melhor amigo com segurança.',
-    color: '#7F8C8D',
-    features: [
-      'Monitoramento de até 1 Pet',
-      'Histórico de saúde básico',
-      'Breakdown simplificado do Score',
-      'Lembretes de consultas padrão',
-    ],
-  },
-  {
-    id: 'plus',
-    name: 'Plus',
-    monthlyPrice: 'R$ 9,90/mês',
-    annualPrice: 'R$ 89,90/ano',
-    description: 'Mais controle, relatórios detalhados e alertas inteligentes para seu pet.',
-    color: '#289fce',
-    features: [
-      'Monitoramento de até 3 Pets',
-      'Histórico completo sem restrições',
-      'Breakdown detalhado do Score',
-      'Alertas automatizados via WhatsApp',
-      'Gráficos de evolução de 6 meses',
-    ],
-  },
-  {
-    id: 'premium',
-    name: 'Premium',
-    monthlyPrice: 'R$ 19,90/mês',
-    annualPrice: 'R$ 179,90/ano',
-    description: 'Experiência completa com suporte prioritário e predições avançadas com IA.',
-    color: '#126ca8',
-    features: [
-      'Pets Ilimitados',
-      'Análise preditiva de saúde CLYVO Predict',
-      'Suporte prioritário 24/7 com especialistas',
-      'Exportação de relatórios em PDF para veterinários',
-      'Alertas instantâneos e customizados',
-    ],
-  },
-];
 export const PlansSection: React.FC = () => {
   const { styles } = useThemedStyles(makeStyles);
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
-  const [selectedPlan, setSelectedPlan] = useState<any>(null);
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const handleOpenDetails = (plan: Plan) => {
-    const formattedPlan = {
-      ...plan,
-      price: billingCycle === 'monthly' ? plan.monthlyPrice : plan.annualPrice,
-    };
-    setSelectedPlan(formattedPlan);
-    setModalVisible(true);
-  };
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
+  const [selectedPlan, setSelectedPlan] = useState<PricedPlan | null>(null);
+  const handleOpenDetails = (plan: Plan) => setSelectedPlan(priceFor(plan, billingCycle));
   return (
     <View style={styles.container}>
       <View style={styles.sectionHeaderRow}>
@@ -96,8 +34,8 @@ export const PlansSection: React.FC = () => {
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {PLANS_DATA.map((plan) => {
-          const currentPrice = billingCycle === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
+        {PLANS.map((plan) => {
+          const currentPrice = priceFor(plan, billingCycle).price;
           return (
             <TouchableOpacity
               key={plan.id}
@@ -123,7 +61,7 @@ export const PlansSection: React.FC = () => {
         })}
       </ScrollView>
 
-      <PlanDetailsModal visible={modalVisible} onClose={() => setModalVisible(false)} plan={selectedPlan} />
+      <PlanDetailsModal visible={!!selectedPlan} onClose={() => setSelectedPlan(null)} plan={selectedPlan} />
     </View>
   );
 };
