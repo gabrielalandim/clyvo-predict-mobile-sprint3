@@ -25,8 +25,7 @@ export function usePet(petId: string | undefined) {
 export function useCreatePet() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ form, tutorId }: { form: PetFormData; tutorId: number }) =>
-      petService.createPet(form, tutorId),
+    mutationFn: (form: PetFormData) => petService.createPet(form),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: petKeys.all });
     },
@@ -36,8 +35,7 @@ export function useCreatePet() {
 export function useUpdatePet() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, form, tutorId }: { id: string; form: PetFormData; tutorId: number }) =>
-      petService.updatePet(id, form, tutorId),
+    mutationFn: ({ id, form }: { id: string; form: PetFormData }) => petService.updatePet(id, form),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: petKeys.all });
       queryClient.invalidateQueries({ queryKey: petKeys.detail(variables.id) });

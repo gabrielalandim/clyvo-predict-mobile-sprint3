@@ -21,7 +21,6 @@ import { PetFormData } from '@models/Pet';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@contexts/ThemeContext';
-import { useAuth } from '@contexts/AuthContext';
 import { usePet, useCreatePet, useUpdatePet, useAnalisarCadastro } from '@hooks/usePets';
 type AddPetScreenNavigationProp = StackNavigationProp<RootStackParamList, 'AddPet'>;
 type AddPetScreenRouteProp = RouteProp<RootStackParamList, 'AddPet'>;
@@ -56,7 +55,6 @@ const EMPTY_FORM: PetFormData = {
 const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
   const { colors: COLORS } = useTheme();
   const styles = makeStyles(COLORS);
-  const { session } = useAuth();
   const mode = route.params?.mode ?? 'manual';
   const [formData, setFormData] = useState<PetFormData>(EMPTY_FORM);
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -202,10 +200,6 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
     setShowDropdown(false);
   };
   const handleSubmit = () => {
-    if (!session) {
-      Alert.alert('Sessão expirada', 'Faça login novamente.');
-      return;
-    }
     const newErrors: ValidationErrors = {};
     if (!formData.name.trim()) newErrors.name = true;
     if (!formData.breed.trim()) newErrors.breed = true;
@@ -224,7 +218,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
     }
     if (mode === 'edit' && route.params?.petId) {
       updatePetMutation.mutate(
-        { id: route.params.petId, form: formData, tutorId: session.id },
+        { id: route.params.petId, form: formData },
         {
           onSuccess: (pet) => {
             Alert.alert('Sucesso!', `${pet.name} foi atualizado!`, [
@@ -236,7 +230,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
       );
     } else {
       createPetMutation.mutate(
-        { form: formData, tutorId: session.id },
+        formData,
         {
           onSuccess: (pet) => {
             Alert.alert('Sucesso!', `${pet.name} foi cadastrado!`, [

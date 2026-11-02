@@ -46,7 +46,7 @@ function calculateAgeFromBirthDate(birthDateStr: string): number | null {
   if (beforeBirthdayThisYear) years--;
   return Math.max(0, years);
 }
-function toRequestDTO(form: PetFormData, tutorId: number) {
+function toRequestDTO(form: PetFormData) {
   const ageFromBirthDate = form.birthDate ? calculateAgeFromBirthDate(form.birthDate) : null;
   const idade = ageFromBirthDate ?? parseInt(form.age, 10);
   return {
@@ -55,7 +55,6 @@ function toRequestDTO(form: PetFormData, tutorId: number) {
     raca: form.breed.trim() || null,
     idade,
     peso: parseFloat(form.weight.replace(',', '.')),
-    tutorId,
   };
 }
 export const petService = {
@@ -103,9 +102,9 @@ export const petService = {
       );
     }
   },
-  async createPet(form: PetFormData, tutorId: number): Promise<Pet> {
+  async createPet(form: PetFormData): Promise<Pet> {
     try {
-      const dto = toRequestDTO(form, tutorId);
+      const dto = toRequestDTO(form);
       const { data } = await api.post<PetApiDTO>('/pets', dto);
       await petExtrasStorage.saveExtras(String(data.id), {
         photoUri: form.photoUri || undefined,
@@ -123,9 +122,9 @@ export const petService = {
       throw new Error(extractApiErrorMessage(error, 'Não foi possível cadastrar o pet.'));
     }
   },
-  async updatePet(id: string, form: PetFormData, tutorId: number): Promise<Pet> {
+  async updatePet(id: string, form: PetFormData): Promise<Pet> {
     try {
-      const dto = toRequestDTO(form, tutorId);
+      const dto = toRequestDTO(form);
       const { data } = await api.put<PetApiDTO>(`/pets/${id}`, dto);
       await petExtrasStorage.saveExtras(id, {
         photoUri: form.photoUri || undefined,
