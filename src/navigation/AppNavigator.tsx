@@ -15,6 +15,7 @@ import PetDetailsScreen from '@screens/PetDetails';
 import PetHistoryScreen from '@screens/PetHistory';
 import PetWalletScreen from '@screens/PetWallet';
 import TutorProfileScreen from '@screens/TutorProfile';
+import EditProfileScreen from '@screens/EditProfile';
 const Stack = createStackNavigator<RootStackParamList>();
 const AppNavigator: React.FC = () => {
   const { colors } = useTheme();
@@ -44,6 +45,7 @@ const AppNavigator: React.FC = () => {
           <Stack.Screen name="PetHistory" component={PetHistoryScreen} />
           <Stack.Screen name="PetWallet" component={PetWalletScreen} />
           <Stack.Screen name="TutorProfile" component={TutorProfileScreen} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
         </>
       ) : (
         <>

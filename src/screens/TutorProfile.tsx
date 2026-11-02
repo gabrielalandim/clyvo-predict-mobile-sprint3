@@ -47,7 +47,11 @@ export default function TutorProfileScreen({ navigation }: Props) {
                 <Text style={styles.appName}>ClyvoPredict</Text>
               </View>
 
-              <TouchableOpacity style={styles.profilePill} activeOpacity={0.8}>
+              <TouchableOpacity
+                style={styles.profilePill}
+                activeOpacity={0.8}
+                onPress={() => navigation.navigate('EditProfile', { mode: 'profile' })}
+              >
                 <View style={styles.profilePillAvatar}>
                   <Ionicons name="person" size={14} color={COLORS.primary} />
                 </View>
@@ -55,7 +59,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
                   <Text style={styles.profilePillName}>{session?.nome?.split(' ')[0] ?? 'Tutor'}</Text>
                   <Text style={styles.profilePillSub}>{session?.email ?? 'Ver perfil'}</Text>
                 </View>
-                <Ionicons name="chevron-down" size={14} color={COLORS.white} />
+                <Ionicons name="chevron-forward" size={14} color={COLORS.white} />
               </TouchableOpacity>
             </View>
 
@@ -80,7 +84,11 @@ export default function TutorProfileScreen({ navigation }: Props) {
           <View style={styles.contentBody}>
             <Text style={styles.sectionHeader}>MINHA CONTA</Text>
             <View style={styles.menuGroup}>
-              <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('EditProfile', { mode: 'profile' })}
+              >
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="person-outline" size={22} color={COLORS.primary} />
                   <View style={styles.textBlock}>
@@ -108,7 +116,11 @@ export default function TutorProfileScreen({ navigation }: Props) {
 
               <View style={styles.rowDivider} />
 
-              <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('EditProfile', { mode: 'password' })}
+              >
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="key-outline" size={22} color={COLORS.primary} />
                   <View style={styles.textBlock}>

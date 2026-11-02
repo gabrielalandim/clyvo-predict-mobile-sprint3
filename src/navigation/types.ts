@@ -25,4 +25,5 @@ export type RootStackParamList = {
   PetHistory: { petId?: string } | undefined;
   PetWallet: { petId?: string } | undefined;
   TutorProfile: undefined;
+  EditProfile: { mode: 'profile' | 'password' };
 };
