@@ -52,4 +52,5 @@ export interface HealthEvent {
   descricao: string;
   dataEvento: string;
   deltaScore: number;
+  petHealthScore: number;
 }

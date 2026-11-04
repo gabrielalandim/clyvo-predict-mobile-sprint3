@@ -2,10 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { petService } from '@services/petService';
 import { PetFormData } from '@models/Pet';
 
-export const petKeys = {
-  all: ['pets'] as const,
-  detail: (id: string) => ['pets', id] as const,
-};
+import { petKeys } from './petKeys';
+
+export { petKeys };
 
 export function usePets() {
   return useQuery({

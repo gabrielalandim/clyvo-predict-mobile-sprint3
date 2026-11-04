@@ -11,6 +11,7 @@ function toViewModel(dto: HealthEventApiDTO): HealthEvent {
     descricao: dto.descricao,
     dataEvento: dto.dataEvento,
     deltaScore: getEventTypeConfig(dto.tipoEvento).impactoScore,
+    petHealthScore: dto.novoHealthScore,
   };
 }
 export const healthEventService = {
