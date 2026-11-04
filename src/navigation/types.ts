@@ -30,4 +30,5 @@ export type RootStackParamList = {
   EditProfile: { mode: 'profile' | 'password' };
   Info: { topic: InfoTopic };
   ScheduleReminder: { petId: string; petName: string };
+  Notifications: undefined;
 };

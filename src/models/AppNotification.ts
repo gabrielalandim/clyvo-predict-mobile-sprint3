@@ -13,3 +13,12 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   healthAlerts: true,
   careReminders: true,
 };
+
+export interface InboxNotification {
+  id: string;
+  title: string;
+  body: string;
+  data: AppNotificationData;
+  receivedAt: string;
+  read: boolean;
+}

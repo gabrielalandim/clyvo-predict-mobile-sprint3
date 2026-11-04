@@ -3,6 +3,7 @@ import { sessionStorage } from '@storage/sessionStorage';
 import { TutorAuthResponseDTO, TutorSession } from '@models/Auth';
 import { isTokenExpired } from '@utils/jwt';
 import { cancelAllScheduled } from './notificationService';
+import { notificationInboxStorage } from '@storage/notificationInboxStorage';
 export interface RegisterPayload {
   nome: string;
   email: string;
@@ -30,6 +31,7 @@ export const authService = {
   async logout(): Promise<void> {
     await sessionStorage.clearSession();
     await cancelAllScheduled().catch(() => undefined);
+    await notificationInboxStorage.clear().catch(() => undefined);
   },
   async getSession(): Promise<TutorSession | null> {
     const session = await sessionStorage.getSession();

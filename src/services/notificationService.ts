@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import { AppNotificationData } from '@models/AppNotification';
+import { AppNotificationData, InboxNotification } from '@models/AppNotification';
 
 
 export const NOTIFICATION_CHANNELS = {
@@ -84,11 +84,37 @@ export function parseNotificationData(data: unknown): AppNotificationData | null
   return null;
 }
 
-export function onNotificationTapped(listener: (data: AppNotificationData) => void) {
+function toInboxItem(notification: Notifications.Notification): Omit<InboxNotification, 'read'> | null {
+  const data = parseNotificationData(notification.request.content.data);
+  if (!data) return null;
+  return {
+    id: notification.request.identifier,
+    title: notification.request.content.title ?? 'ClyvoPredict',
+    body: notification.request.content.body ?? '',
+    data,
+    receivedAt: new Date(notification.date ? (notification.date < 1e12 ? notification.date * 1000 : notification.date) : Date.now()).toISOString(),
+  };
+}
+
+type InboxItem = Omit<InboxNotification, 'read'>;
+
+export function onNotificationTapped(listener: (data: AppNotificationData, item: InboxItem | null) => void) {
   return Notifications.addNotificationResponseReceivedListener((response) => {
     const data = parseNotificationData(response.notification.request.content.data);
-    if (data) listener(data);
+    if (data) listener(data, toInboxItem(response.notification));
   });
+}
+
+export function onNotificationReceived(listener: (item: InboxItem) => void) {
+  return Notifications.addNotificationReceivedListener((notification) => {
+    const item = toInboxItem(notification);
+    if (item) listener(item);
+  });
+}
+
+export async function listPresented(): Promise<InboxItem[]> {
+  const presented = await Notifications.getPresentedNotificationsAsync();
+  return presented.map(toInboxItem).filter((i): i is InboxItem => i !== null);
 }
 
 export async function consumeLaunchNotification(): Promise<AppNotificationData | null> {

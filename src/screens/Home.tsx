@@ -18,6 +18,7 @@ import { PlansSection } from '@components/PlansSection';
 import { PetCard } from '@components/PetCard';
 import { usePets } from '@hooks/usePets';
 import { useConfirmDeletePet } from '@hooks/useDeleteConfirmations';
+import { useNotificationInbox } from '@hooks/useNotificationInbox';
 import { useThemedStyles } from '@hooks/useThemedStyles';
 import { useErrorAlert } from '@hooks/useErrorAlert';
 import { useRefetchOnFocus } from '@hooks/useRefetchOnFocus';
@@ -31,6 +32,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
   const { data: pets = [], isLoading, isRefetching, error, refetch } = usePets();
   const confirmDeletePet = useConfirmDeletePet();
+  const { unreadCount } = useNotificationInbox();
 
   useRefetchOnFocus(refetch);
 
@@ -43,9 +45,14 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.greeting}>Olá,</Text>
           <Text style={styles.userName}>{session?.nome?.split(' ')[0] ?? 'Tutor'}</Text>
         </View>
-        <TouchableOpacity style={styles.notificationButton} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.notificationButton}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Notifications')}
+          accessibilityLabel={unreadCount ? `${unreadCount} notificações não lidas` : 'Notificações'}
+        >
           <Ionicons name="notifications-outline" size={24} color={COLORS.white} />
-          <View style={styles.notificationBadge} />
+          {unreadCount > 0 && <View style={styles.notificationBadge} />}
         </TouchableOpacity>
       </View>
 

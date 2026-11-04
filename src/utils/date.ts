@@ -51,3 +51,13 @@ export function formatReminderDate(date: Date, now: Date = new Date()): string {
   if (diffDays === 1) return `Amanhã às ${time}`;
   return `${date.toLocaleDateString('pt-BR')} às ${time}`;
 }
+
+export function formatRelativeTime(date: Date, now: Date = new Date()): string {
+  const diffMinutes = Math.floor((now.getTime() - date.getTime()) / 60000);
+  if (diffMinutes < 1) return 'agora';
+  if (diffMinutes < 60) return `há ${diffMinutes} min`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `há ${diffHours} h`;
+  if (diffHours < 48) return 'ontem';
+  return date.toLocaleDateString('pt-BR');
+}
