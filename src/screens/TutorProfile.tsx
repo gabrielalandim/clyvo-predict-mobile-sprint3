@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Switch, Alert } from 'react-native';
+import { View, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Switch, Alert } from 'react-native';
+import { Text } from '@components/AppText';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES } from '@constants/theme';

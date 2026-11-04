@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   View,
-  Text,
   TextInput,
   StyleSheet,
   TouchableOpacity,
@@ -10,6 +9,7 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
+import { Text } from '@components/AppText';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '@navigation/types';

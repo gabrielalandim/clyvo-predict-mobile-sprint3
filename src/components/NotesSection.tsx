@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { Text } from '@components/AppText';
 import { SPACING, FONT_SIZES } from '@constants/theme';
 import { useThemedStyles } from '@hooks/useThemedStyles';
 import { PetNote } from '@models/PetNote';

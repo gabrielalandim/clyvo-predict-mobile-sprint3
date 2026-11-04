@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { Text } from '@components/AppText';
 import { Ionicons } from '@expo/vector-icons';
 import { SPACING, FONT_SIZES, getScoreColor } from '@constants/theme';
 import { Pet } from '@models/Pet';

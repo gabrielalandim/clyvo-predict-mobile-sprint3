@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { Text } from '@components/AppText';
 import { SPACING, FONT_SIZES } from '@constants/theme';
 import { Pet } from '@models/Pet';
 import { SPECIES_CONFIG } from '@constants/races';
