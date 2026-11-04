@@ -39,11 +39,11 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
 
             <View style={styles.featureRow}>
               <View style={styles.iconContainer}>
-                <Ionicons name="chatbubble" size={20} color={COLORS.white} />
+                <Ionicons name="notifications" size={20} color={COLORS.white} />
               </View>
               <View style={styles.featureTextContainer}>
-                <Text style={styles.featureTitle}>Alertas via WhatsApp</Text>
-                <Text style={styles.featureSub}>IA personalizada por raça</Text>
+                <Text style={styles.featureTitle}>Alertas e lembretes</Text>
+                <Text style={styles.featureSub}>Aviso quando o score muda e na hora dos cuidados</Text>
               </View>
             </View>
 

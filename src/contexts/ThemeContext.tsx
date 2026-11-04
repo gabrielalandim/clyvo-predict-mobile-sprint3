@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useColorScheme } from 'react-native';
+import { preferencesStorage } from '@storage/preferencesStorage';
 import { COLORS } from '@constants/theme';
 const DARK_COLORS = {
   primary: '#289fce',
@@ -29,22 +30,16 @@ const ThemeContext = createContext<ThemeContextType>({
 export const ThemeProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const [isDark, setIsDark] = useState(false);
+  const systemScheme = useColorScheme();
+  const [savedPreference, setSavedPreference] = useState<boolean | null>(null);
   useEffect(() => {
-    const load = async () => {
-      try {
-        const saved = await AsyncStorage.getItem('@clyvo:dark_mode');
-        if (saved === 'true') setIsDark(true);
-      } catch {}
-    };
-    load();
+    preferencesStorage.getDarkMode().then(setSavedPreference);
   }, []);
-  const toggleTheme = async () => {
+  const isDark = savedPreference ?? systemScheme === 'dark';
+  const toggleTheme = () => {
     const next = !isDark;
-    setIsDark(next);
-    try {
-      await AsyncStorage.setItem('@clyvo:dark_mode', String(next));
-    } catch {}
+    setSavedPreference(next);
+    preferencesStorage.setDarkMode(next);
   };
   return (
     <ThemeContext.Provider value={{ isDark, colors: isDark ? (DARK_COLORS as Colors) : COLORS, toggleTheme }}>
