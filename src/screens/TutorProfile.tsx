@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomTabBar } from '@components/BottomTabBar';
 import { useTheme } from '@contexts/ThemeContext';
 import { useAuth } from '@contexts/AuthContext';
+import { isVeterinarian } from '@models/Auth';
 import { useTutorStats } from '@hooks/useTutorStats';
 import { useThemedStyles } from '@hooks/useThemedStyles';
 import { useNotificationPreferences } from '@hooks/useNotificationPreferences';
@@ -25,6 +26,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
   const { isDark, toggleTheme } = useTheme();
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const { session, logout } = useAuth();
+  const isVet = isVeterinarian(session);
   const { preferences, setPreference } = useNotificationPreferences();
 
   const { petCount, eventCount } = useTutorStats();
@@ -58,6 +60,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
               <TouchableOpacity
                 style={styles.profilePill}
                 activeOpacity={0.8}
+                disabled={isVet}
                 onPress={() => navigation.navigate('EditProfile', { mode: 'profile' })}
               >
                 <View style={styles.profilePillAvatar}>
@@ -74,7 +77,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{petCount}</Text>
-                <Text style={styles.statLabel}>Pets</Text>
+                <Text style={styles.statLabel}>{isVet ? 'Pacientes' : 'Pets'}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
@@ -83,8 +86,8 @@ export default function TutorProfileScreen({ navigation }: Props) {
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>Free</Text>
-                <Text style={styles.statLabel}>Plano</Text>
+                <Text style={styles.statValue}>{isVet ? 'Vet' : 'Free'}</Text>
+                <Text style={styles.statLabel}>{isVet ? 'Perfil' : 'Plano'}</Text>
               </View>
             </View>
           </View>
@@ -92,20 +95,34 @@ export default function TutorProfileScreen({ navigation }: Props) {
           <View style={styles.contentBody}>
             <Text style={styles.sectionHeader}>MINHA CONTA</Text>
             <View style={styles.menuGroup}>
-              <TouchableOpacity
-                style={styles.menuItem}
-                activeOpacity={0.7}
-                onPress={() => navigation.navigate('EditProfile', { mode: 'profile' })}
-              >
-                <View style={styles.menuItemLeft}>
-                  <Ionicons name="person-outline" size={22} color={COLORS.primary} />
-                  <View style={styles.textBlock}>
-                    <Text style={styles.menuItemTitle}>Editar Perfil</Text>
-                    <Text style={styles.menuItemSubtitle}>Nome, email, telefone</Text>
+              {isVet ? (
+                <View style={styles.menuItem}>
+                  <View style={styles.menuItemLeft}>
+                    <Ionicons name="medkit-outline" size={22} color={COLORS.primary} />
+                    <View style={styles.textBlock}>
+                      <Text style={styles.menuItemTitle}>Veterinário</Text>
+                      <Text style={styles.menuItemSubtitle}>
+                        {session?.crmv ? `CRMV ${session.crmv}` : session?.email}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color={COLORS.border} />
-              </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate('EditProfile', { mode: 'profile' })}
+                >
+                  <View style={styles.menuItemLeft}>
+                    <Ionicons name="person-outline" size={22} color={COLORS.primary} />
+                    <View style={styles.textBlock}>
+                      <Text style={styles.menuItemTitle}>Editar Perfil</Text>
+                      <Text style={styles.menuItemSubtitle}>Nome, email, telefone</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={COLORS.border} />
+                </TouchableOpacity>
+              )}
 
               <View style={styles.rowDivider} />
 
@@ -113,7 +130,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="paw-outline" size={22} color={COLORS.primary} />
                   <View style={styles.textBlock}>
-                    <Text style={styles.menuItemTitle}>Meus Pets</Text>
+                    <Text style={styles.menuItemTitle}>{isVet ? 'Pacientes' : 'Meus Pets'}</Text>
                     <Text style={styles.menuItemSubtitle}>
                       {petCount} {petCount === 1 ? 'cadastrado' : 'cadastrados'}
                     </Text>
@@ -122,40 +139,46 @@ export default function TutorProfileScreen({ navigation }: Props) {
                 <Ionicons name="chevron-forward" size={18} color={COLORS.border} />
               </TouchableOpacity>
 
-              <View style={styles.rowDivider} />
+              {!isVet && (
+                <>
+                  <View style={styles.rowDivider} />
 
-              <TouchableOpacity
-                style={styles.menuItem}
-                activeOpacity={0.7}
-                onPress={() => navigation.navigate('EditProfile', { mode: 'password' })}
-              >
-                <View style={styles.menuItemLeft}>
-                  <Ionicons name="key-outline" size={22} color={COLORS.primary} />
-                  <View style={styles.textBlock}>
-                    <Text style={styles.menuItemTitle}>Alterar Senha</Text>
-                    <Text style={styles.menuItemSubtitle}>Segurança da conta</Text>
+                  <TouchableOpacity
+                    style={styles.menuItem}
+                    activeOpacity={0.7}
+                    onPress={() => navigation.navigate('EditProfile', { mode: 'password' })}
+                  >
+                    <View style={styles.menuItemLeft}>
+                      <Ionicons name="key-outline" size={22} color={COLORS.primary} />
+                      <View style={styles.textBlock}>
+                        <Text style={styles.menuItemTitle}>Alterar Senha</Text>
+                        <Text style={styles.menuItemSubtitle}>Segurança da conta</Text>
+                      </View>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={COLORS.border} />
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+
+            {!isVet && (
+              <View style={styles.premiumCard}>
+                <View style={styles.premiumCardLeft}>
+                  <Ionicons name="star" size={24} color="#F5B041" />
+                  <View>
+                    <Text style={styles.premiumTitle}>Plano Gratuito</Text>
+                    <Text style={styles.premiumSubtitle}>Até 3 pets · Score básico</Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color={COLORS.border} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.premiumCard}>
-              <View style={styles.premiumCardLeft}>
-                <Ionicons name="star" size={24} color="#F5B041" />
-                <View>
-                  <Text style={styles.premiumTitle}>Plano Gratuito</Text>
-                  <Text style={styles.premiumSubtitle}>Até 3 pets · Score básico</Text>
-                </View>
+                <TouchableOpacity
+                  style={styles.premiumButton}
+                  activeOpacity={0.8}
+                  onPress={() => setPlanDetails(priceFor(getPlan('premium'), 'monthly'))}
+                >
+                  <Text style={styles.premiumButtonText}>Ver Premium</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                style={styles.premiumButton}
-                activeOpacity={0.8}
-                onPress={() => setPlanDetails(priceFor(getPlan('premium'), 'monthly'))}
-              >
-                <Text style={styles.premiumButtonText}>Ver Premium</Text>
-              </TouchableOpacity>
-            </View>
+            )}
 
             <Text style={styles.sectionHeader}>PREFERÊNCIAS</Text>
             <View style={styles.menuGroup}>

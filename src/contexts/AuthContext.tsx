@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { TutorSession } from '@models/Auth';
+import { Perfil, TutorSession } from '@models/Auth';
 import { authService, RegisterPayload } from '@services/authService';
 import { authEvents } from '@services/authEvents';
 interface AuthContextType {
   session: TutorSession | null;
   isLoading: boolean;
-  login: (email: string, senha: string) => Promise<void>;
-  register: (payload: RegisterPayload) => Promise<void>;
+  login: (email: string, senha: string, perfil?: Perfil) => Promise<void>;
+  register: (payload: RegisterPayload, perfil?: Perfil) => Promise<void>;
   logout: () => Promise<void>;
 }
 const AuthContext = createContext<AuthContextType>({
@@ -30,12 +30,12 @@ export const AuthProvider: React.FC<{
   useEffect(() => {
     return authEvents.onUnauthorized(() => setSession(null));
   }, []);
-  const login = async (email: string, senha: string) => {
-    const s = await authService.login(email, senha);
+  const login = async (email: string, senha: string, perfil: Perfil = 'TUTOR') => {
+    const s = await authService.login(email, senha, perfil);
     setSession(s);
   };
-  const register = async (payload: RegisterPayload) => {
-    await authService.register(payload);
+  const register = async (payload: RegisterPayload, perfil: Perfil = 'TUTOR') => {
+    await authService.register(payload, perfil);
   };
   const logout = async () => {
     await authService.logout();

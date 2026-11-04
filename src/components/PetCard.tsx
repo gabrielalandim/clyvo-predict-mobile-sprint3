@@ -10,7 +10,7 @@ interface PetCardProps {
   item: Pet;
   onPressDetails: () => void;
   onPressRegisterEvent: () => void;
-  onPressDelete: () => void;
+  onPressDelete?: () => void;
 }
 export const PetCard: React.FC<PetCardProps> = ({ item, onPressDetails, onPressRegisterEvent, onPressDelete }) => {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
@@ -57,9 +57,11 @@ export const PetCard: React.FC<PetCardProps> = ({ item, onPressDetails, onPressR
         <Text style={styles.actionText}>Registrar Evento</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.deleteButton} onPress={onPressDelete} activeOpacity={0.5}>
-        <Ionicons name="close" size={18} color={COLORS.textSecondary} />
-      </TouchableOpacity>
+      {onPressDelete && (
+        <TouchableOpacity style={styles.deleteButton} onPress={onPressDelete} activeOpacity={0.5}>
+          <Ionicons name="close" size={18} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

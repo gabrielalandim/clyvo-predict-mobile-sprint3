@@ -13,19 +13,42 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES } from '@constants/theme';
 import { useRegisterForm } from '@hooks/useRegisterForm';
+import { ProfileToggle } from '@components/ProfileToggle';
 import { useThemedStyles } from '@hooks/useThemedStyles';
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Register'>;
 };
 const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
-  const { nome, setNome, email, setEmail, telefone, setTelefone, senha, setSenha, loading, error, submit } =
-    useRegisterForm();
+  const {
+    perfil,
+    setPerfil,
+    crmv,
+    setCrmv,
+    nome,
+    setNome,
+    email,
+    setEmail,
+    telefone,
+    setTelefone,
+    senha,
+    setSenha,
+    loading,
+    error,
+    submit,
+  } = useRegisterForm();
+  const isVet = perfil === 'VETERINARIO';
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Criar conta</Text>
-        <Text style={styles.subtitle}>Cadastre-se para acompanhar a saúde do seu pet.</Text>
+        <Text style={styles.subtitle}>
+          {isVet
+            ? 'Cadastre-se para acompanhar a saúde dos seus pacientes.'
+            : 'Cadastre-se para acompanhar a saúde do seu pet.'}
+        </Text>
+
+        <ProfileToggle value={perfil} onChange={setPerfil} />
 
         <Text style={styles.label}>Nome</Text>
         <TextInput
@@ -47,15 +70,31 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           onChangeText={setEmail}
         />
 
-        <Text style={styles.label}>Telefone</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="(11) 91234-5678"
-          placeholderTextColor={COLORS.textSecondary}
-          keyboardType="phone-pad"
-          value={telefone}
-          onChangeText={setTelefone}
-        />
+        {isVet ? (
+          <>
+            <Text style={styles.label}>CRMV</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex: SP-12345"
+              placeholderTextColor={COLORS.textSecondary}
+              autoCapitalize="characters"
+              value={crmv}
+              onChangeText={setCrmv}
+            />
+          </>
+        ) : (
+          <>
+            <Text style={styles.label}>Telefone</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="(11) 91234-5678"
+              placeholderTextColor={COLORS.textSecondary}
+              keyboardType="phone-pad"
+              value={telefone}
+              onChangeText={setTelefone}
+            />
+          </>
+        )}
 
         <Text style={styles.label}>Senha</Text>
         <TextInput

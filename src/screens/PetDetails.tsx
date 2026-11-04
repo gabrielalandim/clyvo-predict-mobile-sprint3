@@ -23,6 +23,8 @@ import { usePetNotes } from '@hooks/usePetNotes';
 import { useCareReminders, useCancelCareReminder } from '@hooks/useCareReminders';
 import { UpcomingCareCard } from '@components/UpcomingCareCard';
 import { CareReminder } from '@models/CareReminder';
+import { isVeterinarian } from '@models/Auth';
+import { useAuth } from '@contexts/AuthContext';
 
 type PetDetailsNavigationProp = StackNavigationProp<RootStackParamList, 'PetDetails'>;
 type PetDetailsRouteProp = RouteProp<RootStackParamList, 'PetDetails'>;
@@ -33,6 +35,8 @@ interface Props {
 const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const { petId } = route.params;
+  const { session } = useAuth();
+  const isVet = isVeterinarian(session);
 
   const { data: pet, isLoading: petLoading, error: petError, refetch: refetchPet } = usePet(petId);
   const { data: events = [], error: eventsError, refetch: refetchEvents } = useHealthEvents(petId);
@@ -137,9 +141,11 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
             <Ionicons name="arrow-back" size={24} color={COLORS.onPrimary} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuButton} onPress={handleOpenMenu}>
-            <Ionicons name="ellipsis-vertical" size={24} color={COLORS.onPrimary} />
-          </TouchableOpacity>
+          {!isVet && (
+            <TouchableOpacity style={styles.menuButton} onPress={handleOpenMenu}>
+              <Ionicons name="ellipsis-vertical" size={24} color={COLORS.onPrimary} />
+            </TouchableOpacity>
+          )}
 
           <View style={styles.profileSection}>
             <View style={styles.photoContainer}>

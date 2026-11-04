@@ -12,6 +12,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES } from '@constants/theme';
 import { useAuth } from '@contexts/AuthContext';
+import { isVeterinarian } from '@models/Auth';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomTabBar } from '@components/BottomTabBar';
 import { PlansSection } from '@components/PlansSection';
@@ -29,6 +30,7 @@ interface Props {
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const { session } = useAuth();
+  const isVet = isVeterinarian(session);
 
   const { data: pets = [], isLoading, isRefetching, error, refetch } = usePets();
   const confirmDeletePet = useConfirmDeletePet();
@@ -42,8 +44,9 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Olá,</Text>
+          <Text style={styles.greeting}>{isVet ? 'Olá, Dr(a).' : 'Olá,'}</Text>
           <Text style={styles.userName}>{session?.nome?.split(' ')[0] ?? 'Tutor'}</Text>
+          {isVet && <Text style={styles.greeting}>Veterinário{session?.crmv ? ` · CRMV ${session.crmv}` : ''}</Text>}
         </View>
         <TouchableOpacity
           style={styles.notificationButton}
@@ -58,21 +61,23 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
       <View style={styles.summary}>
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Pets</Text>
+          <Text style={styles.summaryLabel}>{isVet ? 'Pacientes' : 'Pets'}</Text>
           <Text style={styles.summaryValue}>{pets.length}</Text>
         </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Meus Pets</Text>
-        <TouchableOpacity
-          style={styles.addPetButton}
-          onPress={() => navigation.navigate('AddPetChoice')}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="add" size={16} color={COLORS.onPrimary} />
-          <Text style={styles.addPetButtonText}>Adicionar Pet</Text>
-        </TouchableOpacity>
+        <Text style={styles.sectionTitle}>{isVet ? 'Pacientes' : 'Meus Pets'}</Text>
+        {!isVet && (
+          <TouchableOpacity
+            style={styles.addPetButton}
+            onPress={() => navigation.navigate('AddPetChoice')}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="add" size={16} color={COLORS.onPrimary} />
+            <Text style={styles.addPetButtonText}>Adicionar Pet</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <FlatList
@@ -87,7 +92,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             item={item}
             onPressDetails={() => navigation.navigate('PetDetails', { petId: item.id.toString() })}
             onPressRegisterEvent={() => navigation.navigate('AddHealthEvent', { petId: item.id.toString() })}
-            onPressDelete={() => confirmDeletePet(item)}
+            onPressDelete={isVet ? undefined : () => confirmDeletePet(item)}
           />
         )}
         ListEmptyComponent={
@@ -97,12 +102,14 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             </View>
           ) : (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>Nenhum pet cadastrado</Text>
-              <Text style={styles.emptySubtext}>Toque em Adicionar Pet para começar</Text>
+              <Text style={styles.emptyText}>{isVet ? 'Nenhum paciente cadastrado' : 'Nenhum pet cadastrado'}</Text>
+              <Text style={styles.emptySubtext}>
+                {isVet ? 'Os pets aparecem aqui quando os tutores os cadastram' : 'Toque em Adicionar Pet para começar'}
+              </Text>
             </View>
           )
         }
-        ListFooterComponent={<PlansSection />}
+        ListFooterComponent={isVet ? undefined : <PlansSection />}
       />
 
       <BottomTabBar activeRoute="Home" navigation={navigation} />

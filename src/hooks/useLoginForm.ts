@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useAuth } from '@contexts/AuthContext';
 import { isValidEmail } from '@utils/validation';
+import { Perfil } from '@models/Auth';
 
 export function useLoginForm() {
   const { login } = useAuth();
+  const [perfil, setPerfil] = useState<Perfil>('TUTOR');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,7 +23,7 @@ export function useLoginForm() {
     setError(null);
     setLoading(true);
     try {
-      await login(email.trim(), senha);
+      await login(email.trim(), senha, perfil);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -29,5 +31,5 @@ export function useLoginForm() {
     }
   };
 
-  return { email, setEmail, senha, setSenha, loading, error, submit };
+  return { perfil, setPerfil, email, setEmail, senha, setSenha, loading, error, submit };
 }

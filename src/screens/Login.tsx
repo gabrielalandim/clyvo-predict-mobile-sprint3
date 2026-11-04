@@ -13,19 +13,21 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
 import { SPACING, FONT_SIZES } from '@constants/theme';
 import { useLoginForm } from '@hooks/useLoginForm';
+import { ProfileToggle } from '@components/ProfileToggle';
 import { useThemedStyles } from '@hooks/useThemedStyles';
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Login'>;
 };
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
-  const { email, setEmail, senha, setSenha, loading, error, submit } = useLoginForm();
+  const { perfil, setPerfil, email, setEmail, senha, setSenha, loading, error, submit } = useLoginForm();
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Text style={styles.logo}>CLYVO</Text>
         <Text style={styles.logoSub}>PREDICT</Text>
         <Text style={styles.title}>Entrar</Text>
+        <ProfileToggle value={perfil} onChange={setPerfil} />
 
         <Text style={styles.label}>E-mail</Text>
         <TextInput
