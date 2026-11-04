@@ -31,4 +31,5 @@ export type RootStackParamList = {
   Info: { topic: InfoTopic };
   ScheduleReminder: { petId: string; petName: string };
   Notifications: undefined;
+  About: undefined;
 };

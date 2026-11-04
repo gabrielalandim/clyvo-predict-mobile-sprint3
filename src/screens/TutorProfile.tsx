@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Switch, Alert } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@navigation/types';
@@ -7,18 +7,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomTabBar } from '@components/BottomTabBar';
 import { useTheme } from '@contexts/ThemeContext';
 import { useAuth } from '@contexts/AuthContext';
-import { useState } from 'react';
 import { useTutorStats } from '@hooks/useTutorStats';
+import { useThemedStyles } from '@hooks/useThemedStyles';
 import { useNotificationPreferences } from '@hooks/useNotificationPreferences';
 import { PlanDetailsModal } from '@components/PlanDetailsModal';
 import { getPlan, priceFor, PricedPlan } from '@constants/plans';
+import { getAppInfo } from '@utils/appInfo';
+
+const appInfo = getAppInfo();
+
 type TutorProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'TutorProfile'>;
 type Props = {
   navigation: TutorProfileScreenNavigationProp;
 };
 export default function TutorProfileScreen({ navigation }: Props) {
-  const { isDark, colors: COLORS, toggleTheme } = useTheme();
-  const styles = makeStyles(COLORS);
+  const { isDark, toggleTheme } = useTheme();
+  const { styles, colors: COLORS } = useThemedStyles(makeStyles);
   const { session, logout } = useAuth();
   const { preferences, setPreference } = useNotificationPreferences();
 
@@ -260,12 +264,14 @@ export default function TutorProfileScreen({ navigation }: Props) {
 
               <View style={styles.rowDivider} />
 
-              <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => navigation.navigate('About')}>
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="information-circle-outline" size={22} color={COLORS.primary} />
                   <View style={styles.textBlock}>
                     <Text style={styles.menuItemTitle}>Sobre o App</Text>
-                    <Text style={styles.menuItemSubtitle}>v1.0.0 · FIAP 2026</Text>
+                    <Text style={styles.menuItemSubtitle}>
+                      v{appInfo.version} · commit {appInfo.shortCommitHash}
+                    </Text>
                   </View>
                 </View>
                 <Ionicons name="chevron-forward" size={18} color={COLORS.border} />
@@ -277,7 +283,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
               <Text style={styles.logoutButtonText}>Sair da Conta</Text>
             </TouchableOpacity>
 
-            <Text style={styles.footerInstitution}>CLYVO Predict · v1.0.0 · FIAP Challenge 2026</Text>
+            <Text style={styles.footerInstitution}>CLYVO Predict · v{appInfo.version} · FIAP Challenge 2026</Text>
           </View>
         </ScrollView>
 

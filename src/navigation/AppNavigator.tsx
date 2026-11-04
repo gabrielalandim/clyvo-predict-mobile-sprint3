@@ -19,6 +19,7 @@ import EditProfileScreen from '@screens/EditProfile';
 import InfoScreen from '@screens/InfoScreen';
 import ScheduleReminderScreen from '@screens/ScheduleReminder';
 import NotificationsScreen from '@screens/Notifications';
+import AboutScreen from '@screens/About';
 const Stack = createStackNavigator<RootStackParamList>();
 const AppNavigator: React.FC = () => {
   const { colors } = useTheme();
@@ -52,6 +53,7 @@ const AppNavigator: React.FC = () => {
           <Stack.Screen name="Info" component={InfoScreen} />
           <Stack.Screen name="ScheduleReminder" component={ScheduleReminderScreen} />
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
+          <Stack.Screen name="About" component={AboutScreen} />
         </>
       ) : (
         <>
