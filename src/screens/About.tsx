@@ -29,7 +29,7 @@ export default function AboutScreen({ navigation }: Props) {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+          <Ionicons name="arrow-back" size={24} color={COLORS.onPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>Sobre o App</Text>
         <View style={{ width: 32 }} />
@@ -94,7 +94,7 @@ const makeStyles = (COLORS: ThemeColors) =>
       justifyContent: 'space-between',
     },
     backButton: { width: 32, height: 32, justifyContent: 'center' },
-    title: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.white },
+    title: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.onPrimary },
     content: { padding: SPACING.xl, paddingBottom: 40 },
     brand: { alignItems: 'center', marginBottom: SPACING.xl },
     logoCircle: {

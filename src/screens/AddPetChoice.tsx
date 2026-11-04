@@ -14,7 +14,7 @@ const AddPetChoiceScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={22} color={COLORS.white} />
+          <Ionicons name="arrow-back" size={22} color={COLORS.onPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>Cadastrar Pet</Text>
         <View style={{ width: 22 }} />
@@ -73,7 +73,7 @@ const makeStyles = (COLORS: any) =>
       justifyContent: 'space-between',
     },
     backBtn: { width: 32, height: 32, justifyContent: 'center' },
-    title: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.white },
+    title: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.onPrimary },
     body: { flex: 1, paddingHorizontal: SPACING.xl, paddingTop: SPACING.xl },
     heading: { fontSize: FONT_SIZES.xxl, fontWeight: '700', color: COLORS.dark },
     subheading: {

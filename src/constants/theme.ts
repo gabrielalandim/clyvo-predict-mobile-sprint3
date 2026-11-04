@@ -6,6 +6,7 @@ export const COLORS = {
   textSecondary: '#7F8C8D',
   background: '#F8F9FA',
   white: '#FFFFFF',
+  onPrimary: '#FFFFFF',
   scoreGreen: '#5792aa',
   scoreYellow: '#FFD93D',
   scoreRed: '#F96167',

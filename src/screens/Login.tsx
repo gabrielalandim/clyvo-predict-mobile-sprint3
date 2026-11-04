@@ -51,7 +51,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         {error && <Text style={styles.errorText}>{error}</Text>}
 
         <TouchableOpacity style={styles.primaryButton} onPress={submit} disabled={loading}>
-          {loading ? <ActivityIndicator color={COLORS.white} /> : <Text style={styles.primaryButtonText}>Entrar</Text>}
+          {loading ? <ActivityIndicator color={COLORS.onPrimary} /> : <Text style={styles.primaryButtonText}>Entrar</Text>}
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Register')}>
@@ -98,7 +98,7 @@ const makeStyles = (COLORS: any) =>
       alignItems: 'center',
       marginTop: SPACING.xxl,
     },
-    primaryButtonText: { color: COLORS.white, fontSize: FONT_SIZES.lg, fontWeight: '700' },
+    primaryButtonText: { color: COLORS.onPrimary, fontSize: FONT_SIZES.lg, fontWeight: '700' },
     errorText: { color: COLORS.accent, fontSize: FONT_SIZES.sm, marginTop: SPACING.md, fontWeight: '600' },
     linkButton: { marginTop: SPACING.lg, alignItems: 'center' },
     linkText: { color: COLORS.primary, fontWeight: '600' },

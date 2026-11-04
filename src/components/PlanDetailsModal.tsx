@@ -71,13 +71,13 @@ const makeStyles = (COLORS: any) =>
     modalTitle: {
       fontSize: 24,
       fontWeight: '800',
-      color: COLORS.white,
+      color: COLORS.onPrimary,
       marginBottom: 4,
     },
     modalPrice: {
       fontSize: FONT_SIZES.xl,
       fontWeight: '700',
-      color: COLORS.white,
+      color: COLORS.onPrimary,
       opacity: 0.95,
     },
     modalScroll: {
@@ -125,7 +125,7 @@ const makeStyles = (COLORS: any) =>
       justifyContent: 'center',
     },
     actionButtonText: {
-      color: COLORS.white,
+      color: COLORS.onPrimary,
       fontSize: FONT_SIZES.md,
       fontWeight: '700',
     },

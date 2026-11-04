@@ -42,7 +42,7 @@ export default function ScheduleReminderScreen({ navigation, route }: Props) {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+          <Ionicons name="arrow-back" size={24} color={COLORS.onPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>Agendar lembrete</Text>
         <View style={{ width: 32 }} />
@@ -108,7 +108,7 @@ export default function ScheduleReminderScreen({ navigation, route }: Props) {
 
         <TouchableOpacity style={styles.primaryButton} onPress={handleSchedule} disabled={form.saving}>
           {form.saving ? (
-            <ActivityIndicator color={COLORS.white} />
+            <ActivityIndicator color={COLORS.onPrimary} />
           ) : (
             <Text style={styles.primaryButtonText}>Agendar lembrete</Text>
           )}
@@ -131,7 +131,7 @@ const makeStyles = (COLORS: ThemeColors) =>
       justifyContent: 'space-between',
     },
     backButton: { width: 32, height: 32, justifyContent: 'center' },
-    title: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.white },
+    title: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.onPrimary },
     form: { padding: SPACING.xl, paddingBottom: 40 },
     subtitle: { fontSize: FONT_SIZES.lg, fontWeight: '700', color: COLORS.dark, marginBottom: SPACING.lg },
     typeRow: { flexDirection: 'row', gap: SPACING.sm },

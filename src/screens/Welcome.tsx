@@ -29,7 +29,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
           <View style={styles.featuresContainer}>
             <View style={styles.featureRow}>
               <View style={styles.iconContainer}>
-                <Ionicons name="ribbon" size={20} color={COLORS.white} />
+                <Ionicons name="ribbon" size={20} color={COLORS.onPrimary} />
               </View>
               <View style={styles.featureTextContainer}>
                 <Text style={styles.featureTitle}>Score de Saúde 0-100</Text>
@@ -39,7 +39,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
 
             <View style={styles.featureRow}>
               <View style={styles.iconContainer}>
-                <Ionicons name="notifications" size={20} color={COLORS.white} />
+                <Ionicons name="notifications" size={20} color={COLORS.onPrimary} />
               </View>
               <View style={styles.featureTextContainer}>
                 <Text style={styles.featureTitle}>Alertas e lembretes</Text>
@@ -49,7 +49,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
 
             <View style={styles.featureRow}>
               <View style={styles.iconContainer}>
-                <Ionicons name="id-card" size={20} color={COLORS.white} />
+                <Ionicons name="id-card" size={20} color={COLORS.onPrimary} />
               </View>
               <View style={styles.featureTextContainer}>
                 <Text style={styles.featureTitle}>Carteira Digital</Text>
@@ -179,7 +179,7 @@ const makeStyles = (COLORS: any) =>
       alignItems: 'center',
     },
     primaryButtonText: {
-      color: COLORS.white,
+      color: COLORS.onPrimary,
       fontSize: FONT_SIZES.xl,
       fontWeight: '700',
     },

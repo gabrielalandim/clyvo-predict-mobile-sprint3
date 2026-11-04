@@ -145,7 +145,7 @@ const makeStyles = (COLORS: any) =>
       borderRadius: 12,
     },
     badgeText: {
-      color: COLORS.white,
+      color: COLORS.onPrimary,
       fontSize: 12,
       fontWeight: '700',
     },

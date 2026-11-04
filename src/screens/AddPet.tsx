@@ -421,7 +421,7 @@ const AddPetScreen: React.FC<Props> = ({ navigation, route }) => {
             disabled={submitting || analyzing}
           >
             {submitting ? (
-              <ActivityIndicator color={COLORS.white} />
+              <ActivityIndicator color={COLORS.onPrimary} />
             ) : (
               <Text style={styles.submitButtonText}>{mode === 'edit' ? 'Salvar Alterações' : 'Cadastrar Pet'}</Text>
             )}
@@ -454,8 +454,8 @@ const makeStyles = (COLORS: any) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    backArrow: { fontSize: FONT_SIZES.xl, color: COLORS.white, fontWeight: 'bold' },
-    title: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.white },
+    backArrow: { fontSize: FONT_SIZES.xl, color: COLORS.onPrimary, fontWeight: 'bold' },
+    title: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.onPrimary },
     progressBarBackground: { height: 4, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 2 },
     progressBarFill: { width: '55%', height: '100%', backgroundColor: COLORS.white, borderRadius: 2 },
     form: { flex: 1, paddingHorizontal: SPACING.xl, backgroundColor: COLORS.white },
@@ -595,6 +595,6 @@ const makeStyles = (COLORS: any) =>
       backgroundColor: COLORS.white,
     },
     submitButton: { backgroundColor: COLORS.secondary, padding: SPACING.lg, borderRadius: 24, alignItems: 'center' },
-    submitButtonText: { color: COLORS.white, fontSize: FONT_SIZES.lg, fontWeight: '700' },
+    submitButtonText: { color: COLORS.onPrimary, fontSize: FONT_SIZES.lg, fontWeight: '700' },
   });
 export default AddPetScreen;

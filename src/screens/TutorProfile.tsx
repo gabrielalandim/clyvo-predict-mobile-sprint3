@@ -66,7 +66,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
                   <Text style={styles.profilePillName}>{session?.nome?.split(' ')[0] ?? 'Tutor'}</Text>
                   <Text style={styles.profilePillSub}>{session?.email ?? 'Ver perfil'}</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={14} color={COLORS.white} />
+                <Ionicons name="chevron-forward" size={14} color={COLORS.onPrimary} />
               </TouchableOpacity>
             </View>
 
@@ -170,7 +170,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
                   value={preferences.healthAlerts}
                   onValueChange={(enabled) => setPreference('healthAlerts', enabled)}
                   trackColor={{ false: '#D5D8DC', true: COLORS.primary }}
-                  thumbColor={COLORS.white}
+                  thumbColor={COLORS.onPrimary}
                 />
               </View>
 
@@ -188,7 +188,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
                   value={preferences.careReminders}
                   onValueChange={(enabled) => setPreference('careReminders', enabled)}
                   trackColor={{ false: '#D5D8DC', true: COLORS.primary }}
-                  thumbColor={COLORS.white}
+                  thumbColor={COLORS.onPrimary}
                 />
               </View>
 
@@ -206,7 +206,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
                   value={isDark}
                   onValueChange={toggleTheme}
                   trackColor={{ false: '#D5D8DC', true: COLORS.primary }}
-                  thumbColor={COLORS.white}
+                  thumbColor={COLORS.onPrimary}
                 />
               </View>
             </View>
@@ -334,7 +334,7 @@ const makeStyles = (COLORS: any) =>
     appName: {
       fontSize: 20,
       fontWeight: '700',
-      color: COLORS.white,
+      color: COLORS.onPrimary,
       letterSpacing: 0.5,
     },
     profilePill: {
@@ -360,7 +360,7 @@ const makeStyles = (COLORS: any) =>
     profilePillName: {
       fontSize: 13,
       fontWeight: '700',
-      color: COLORS.white,
+      color: COLORS.onPrimary,
     },
     profilePillSub: {
       fontSize: 10,
@@ -380,7 +380,7 @@ const makeStyles = (COLORS: any) =>
     statValue: {
       fontSize: 22,
       fontWeight: '700',
-      color: COLORS.white,
+      color: COLORS.onPrimary,
       marginBottom: 2,
     },
     statLabel: {
@@ -485,7 +485,7 @@ const makeStyles = (COLORS: any) =>
       borderRadius: 14,
     },
     premiumButtonText: {
-      color: COLORS.white,
+      color: COLORS.onPrimary,
       fontSize: 12,
       fontWeight: '700',
     },

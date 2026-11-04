@@ -41,7 +41,7 @@ const AddHealthEventScreen: React.FC<Props> = ({ navigation, route }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={28} color={COLORS.white} />
+          <Ionicons name="arrow-back" size={28} color={COLORS.onPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>{isEditing ? 'Editar Evento' : 'Registrar Evento'}</Text>
         <View style={{ width: 28 }} />
@@ -105,7 +105,7 @@ const AddHealthEventScreen: React.FC<Props> = ({ navigation, route }) => {
       <View style={styles.footer}>
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isSaving}>
           {isSaving ? (
-            <ActivityIndicator color={COLORS.white} />
+            <ActivityIndicator color={COLORS.onPrimary} />
           ) : (
             <Text style={styles.submitButtonText}>{isEditing ? 'Salvar Alterações' : 'Salvar Evento'}</Text>
           )}
@@ -127,7 +127,7 @@ const makeStyles = (COLORS: any) =>
       justifyContent: 'space-between',
     },
     backButton: { padding: 4 },
-    title: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.white },
+    title: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.onPrimary },
     form: { flex: 1, paddingHorizontal: SPACING.xl },
     label: {
       fontSize: FONT_SIZES.md,
@@ -158,7 +158,7 @@ const makeStyles = (COLORS: any) =>
     cardSelected: { backgroundColor: COLORS.primary, borderColor: COLORS.secondary },
     cardNegative: { backgroundColor: COLORS.scoreRed, borderColor: '#C53030' },
     cardText: { fontSize: 14, fontWeight: '600', color: COLORS.dark, marginTop: SPACING.sm },
-    cardTextSelected: { color: COLORS.white },
+    cardTextSelected: { color: COLORS.onPrimary },
     cardImpact: { fontSize: 11, fontWeight: '700', color: COLORS.textSecondary, marginTop: 2 },
     cardImpactSelected: { color: 'rgba(255,255,255,0.85)' },
     infoBox: {
@@ -172,6 +172,6 @@ const makeStyles = (COLORS: any) =>
     infoText: { fontSize: 13, color: COLORS.secondary, lineHeight: 18 },
     footer: { padding: SPACING.xl, backgroundColor: COLORS.white },
     submitButton: { backgroundColor: COLORS.secondary, padding: SPACING.lg, borderRadius: 24, alignItems: 'center' },
-    submitButtonText: { color: COLORS.white, fontSize: FONT_SIZES.lg, fontWeight: '700' },
+    submitButtonText: { color: COLORS.onPrimary, fontSize: FONT_SIZES.lg, fontWeight: '700' },
   });
 export default AddHealthEventScreen;

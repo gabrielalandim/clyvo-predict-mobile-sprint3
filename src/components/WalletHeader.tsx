@@ -31,7 +31,7 @@ export const WalletHeader: React.FC<WalletHeaderProps> = ({
         {onGeneratePDF && (
           <TouchableOpacity style={styles.pdfBtnHeader} onPress={onGeneratePDF} disabled={generatingPDF}>
             {generatingPDF ? (
-              <ActivityIndicator size="small" color={COLORS.white} />
+              <ActivityIndicator size="small" color={COLORS.onPrimary} />
             ) : (
               <Text style={styles.pdfBtnHeaderText}>📄 PDF</Text>
             )}
@@ -82,15 +82,15 @@ const makeStyles = (COLORS: any) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    backIcon: { color: COLORS.white, fontSize: 20, fontWeight: 'bold' },
-    headerTitle: { flex: 1, fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.white },
+    backIcon: { color: COLORS.onPrimary, fontSize: 20, fontWeight: 'bold' },
+    headerTitle: { flex: 1, fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.onPrimary },
     pdfBtnHeader: {
       backgroundColor: 'rgba(255,255,255,0.2)',
       borderRadius: 10,
       paddingHorizontal: 12,
       paddingVertical: 7,
     },
-    pdfBtnHeaderText: { color: COLORS.white, fontSize: FONT_SIZES.sm, fontWeight: '700' },
+    pdfBtnHeaderText: { color: COLORS.onPrimary, fontSize: FONT_SIZES.sm, fontWeight: '700' },
     selectorWrapper: { backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border },
     petSelectorContainer: { paddingHorizontal: SPACING.xl, paddingVertical: SPACING.sm, gap: SPACING.sm },
     petChip: {

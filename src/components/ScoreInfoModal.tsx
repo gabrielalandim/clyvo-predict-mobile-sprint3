@@ -116,7 +116,7 @@ const makeStyles = (COLORS: any) =>
       marginTop: SPACING.md,
     },
     modalCloseButtonText: {
-      color: COLORS.white,
+      color: COLORS.onPrimary,
       fontWeight: '700',
       fontSize: FONT_SIZES.md,
     },

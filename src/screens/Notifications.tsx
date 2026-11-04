@@ -58,11 +58,11 @@ export default function NotificationsScreen({ navigation }: Props) {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+          <Ionicons name="arrow-back" size={24} color={COLORS.onPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>Notificações</Text>
         <TouchableOpacity style={styles.headerButton} onPress={handleClear} disabled={notifications.length === 0}>
-          <Ionicons name="trash-outline" size={22} color={notifications.length ? COLORS.white : 'transparent'} />
+          <Ionicons name="trash-outline" size={22} color={notifications.length ? COLORS.onPrimary : 'transparent'} />
         </TouchableOpacity>
       </View>
 
@@ -98,7 +98,7 @@ const makeStyles = (COLORS: ThemeColors) =>
       justifyContent: 'space-between',
     },
     headerButton: { width: 32, height: 32, justifyContent: 'center', alignItems: 'center' },
-    title: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.white },
+    title: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.onPrimary },
     list: { padding: SPACING.lg, flexGrow: 1 },
     item: {
       flexDirection: 'row',

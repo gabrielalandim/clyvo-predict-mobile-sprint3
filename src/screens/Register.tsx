@@ -71,7 +71,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
         <TouchableOpacity style={styles.primaryButton} onPress={submit} disabled={loading}>
           {loading ? (
-            <ActivityIndicator color={COLORS.white} />
+            <ActivityIndicator color={COLORS.onPrimary} />
           ) : (
             <Text style={styles.primaryButtonText}>Criar conta</Text>
           )}
@@ -113,7 +113,7 @@ const makeStyles = (COLORS: any) =>
       alignItems: 'center',
       marginTop: SPACING.xxl,
     },
-    primaryButtonText: { color: COLORS.white, fontSize: FONT_SIZES.lg, fontWeight: '700' },
+    primaryButtonText: { color: COLORS.onPrimary, fontSize: FONT_SIZES.lg, fontWeight: '700' },
     errorText: { color: COLORS.accent, fontSize: FONT_SIZES.sm, marginTop: SPACING.md, fontWeight: '600' },
     linkButton: { marginTop: SPACING.lg, alignItems: 'center' },
     linkText: { color: COLORS.primary, fontWeight: '600' },

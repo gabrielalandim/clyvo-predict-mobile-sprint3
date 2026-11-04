@@ -65,7 +65,7 @@ export default function EditProfileScreen({ navigation, route }: Props) {
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+          <Ionicons name="arrow-back" size={24} color={COLORS.onPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>{isPasswordMode ? 'Alterar Senha' : 'Editar Perfil'}</Text>
         <View style={{ width: 32 }} />
@@ -115,7 +115,7 @@ export default function EditProfileScreen({ navigation, route }: Props) {
 
           <TouchableOpacity style={styles.primaryButton} onPress={handleSave} disabled={form.saving}>
             {form.saving ? (
-              <ActivityIndicator color={COLORS.white} />
+              <ActivityIndicator color={COLORS.onPrimary} />
             ) : (
               <Text style={styles.primaryButtonText}>Salvar</Text>
             )}
@@ -139,7 +139,7 @@ const makeStyles = (COLORS: ThemeColors) =>
       justifyContent: 'space-between',
     },
     backButton: { width: 32, height: 32, justifyContent: 'center' },
-    title: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.white },
+    title: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.onPrimary },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     form: { padding: SPACING.xl, paddingBottom: 40 },
     label: {
@@ -167,5 +167,5 @@ const makeStyles = (COLORS: ThemeColors) =>
       alignItems: 'center',
       marginTop: SPACING.xxl,
     },
-    primaryButtonText: { color: COLORS.white, fontSize: FONT_SIZES.lg, fontWeight: '700' },
+    primaryButtonText: { color: COLORS.onPrimary, fontSize: FONT_SIZES.lg, fontWeight: '700' },
   });

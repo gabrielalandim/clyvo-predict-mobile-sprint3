@@ -10,6 +10,7 @@ const DARK_COLORS = {
   textSecondary: '#94A3B8',
   background: '#0F172A',
   white: '#1E293B',
+  onPrimary: '#FFFFFF',
   scoreGreen: '#5792aa',
   scoreYellow: '#FFD93D',
   scoreRed: '#F96167',

@@ -133,11 +133,11 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
       >
         <View style={styles.headerBackground}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+            <Ionicons name="arrow-back" size={24} color={COLORS.onPrimary} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuButton} onPress={handleOpenMenu}>
-            <Ionicons name="ellipsis-vertical" size={24} color={COLORS.white} />
+            <Ionicons name="ellipsis-vertical" size={24} color={COLORS.onPrimary} />
           </TouchableOpacity>
 
           <View style={styles.profileSection}>
@@ -230,7 +230,7 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.ctaButton}
             onPress={() => navigation.navigate('AddHealthEvent', { petId: pet.id.toString() })}
           >
-            <Ionicons name="add" size={24} color={COLORS.white} />
+            <Ionicons name="add" size={24} color={COLORS.onPrimary} />
             <Text style={styles.ctaText}>Registrar Novo Evento</Text>
           </TouchableOpacity>
         </View>
@@ -287,8 +287,8 @@ const makeStyles = (COLORS: any) =>
       overflow: 'hidden',
     },
     photoImage: { width: '100%', height: '100%', resizeMode: 'cover' },
-    petName: { fontSize: 28, fontWeight: '700', color: COLORS.white },
-    petSubtitle: { fontSize: FONT_SIZES.md, color: COLORS.white, opacity: 0.9, marginTop: SPACING.xs },
+    petName: { fontSize: 28, fontWeight: '700', color: COLORS.onPrimary },
+    petSubtitle: { fontSize: FONT_SIZES.md, color: COLORS.onPrimary, opacity: 0.9, marginTop: SPACING.xs },
     scoreCard: {
       backgroundColor: COLORS.white,
       borderRadius: 24,
@@ -367,6 +367,6 @@ const makeStyles = (COLORS: any) =>
       marginBottom: SPACING.xl,
       elevation: 2,
     },
-    ctaText: { color: COLORS.white, fontSize: FONT_SIZES.lg, fontWeight: '700' },
+    ctaText: { color: COLORS.onPrimary, fontSize: FONT_SIZES.lg, fontWeight: '700' },
   });
 export default PetDetailsScreen;

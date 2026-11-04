@@ -257,8 +257,8 @@ const makeStyles = (COLORS: any) =>
     },
     topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING.md },
     backButtonContainer: { paddingVertical: SPACING.xs },
-    backArrow: { fontSize: FONT_SIZES.xxl, fontWeight: '600', color: COLORS.white },
-    headerTitle: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.white, letterSpacing: 0.3 },
+    backArrow: { fontSize: FONT_SIZES.xxl, fontWeight: '600', color: COLORS.onPrimary },
+    headerTitle: { fontSize: FONT_SIZES.xl, fontWeight: '700', color: COLORS.onPrimary, letterSpacing: 0.3 },
     selectorScroll: { marginBottom: SPACING.lg },
     petSelector: { flexDirection: 'row', gap: SPACING.sm },
     petChip: {
@@ -298,7 +298,7 @@ const makeStyles = (COLORS: any) =>
     },
     avatarEmoji: { fontSize: 32 },
     profileDetails: { flex: 1 },
-    profileName: { fontSize: FONT_SIZES.xl, fontWeight: '800', color: COLORS.white, marginBottom: SPACING.sm },
+    profileName: { fontSize: FONT_SIZES.xl, fontWeight: '800', color: COLORS.onPrimary, marginBottom: SPACING.sm },
     metaBadgeRow: { flexDirection: 'row', gap: SPACING.sm },
     metaBadge: {
       flex: 1,
@@ -317,7 +317,7 @@ const makeStyles = (COLORS: any) =>
       textTransform: 'uppercase',
       marginBottom: 1,
     },
-    metaBadgeValue: { fontSize: 12, color: COLORS.white, fontWeight: '700' },
+    metaBadgeValue: { fontSize: 12, color: COLORS.onPrimary, fontWeight: '700' },
     body: { padding: SPACING.xl },
     scoreCard: {
       backgroundColor: COLORS.white,

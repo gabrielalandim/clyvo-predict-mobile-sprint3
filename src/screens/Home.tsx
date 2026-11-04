@@ -51,7 +51,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           onPress={() => navigation.navigate('Notifications')}
           accessibilityLabel={unreadCount ? `${unreadCount} notificações não lidas` : 'Notificações'}
         >
-          <Ionicons name="notifications-outline" size={24} color={COLORS.white} />
+          <Ionicons name="notifications-outline" size={24} color={COLORS.onPrimary} />
           {unreadCount > 0 && <View style={styles.notificationBadge} />}
         </TouchableOpacity>
       </View>
@@ -70,7 +70,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           onPress={() => navigation.navigate('AddPetChoice')}
           activeOpacity={0.8}
         >
-          <Ionicons name="add" size={16} color={COLORS.white} />
+          <Ionicons name="add" size={16} color={COLORS.onPrimary} />
           <Text style={styles.addPetButtonText}>Adicionar Pet</Text>
         </TouchableOpacity>
       </View>
@@ -126,13 +126,13 @@ const makeStyles = (COLORS: any) =>
     },
     greeting: {
       fontSize: FONT_SIZES.md,
-      color: COLORS.white,
+      color: COLORS.onPrimary,
       opacity: 0.9,
     },
     userName: {
       fontSize: FONT_SIZES.xxl,
       fontWeight: '700',
-      color: COLORS.white,
+      color: COLORS.onPrimary,
     },
     notificationButton: {
       width: 40,
@@ -164,13 +164,13 @@ const makeStyles = (COLORS: any) =>
     },
     summaryLabel: {
       fontSize: FONT_SIZES.sm,
-      color: COLORS.white,
+      color: COLORS.onPrimary,
       opacity: 0.9,
     },
     summaryValue: {
       fontSize: FONT_SIZES.xxl,
       fontWeight: '700',
-      color: COLORS.white,
+      color: COLORS.onPrimary,
     },
     section: {
       flexDirection: 'row',
@@ -200,7 +200,7 @@ const makeStyles = (COLORS: any) =>
       shadowRadius: 3,
     },
     addPetButtonText: {
-      color: COLORS.white,
+      color: COLORS.onPrimary,
       fontSize: 13,
       fontWeight: '700',
     },

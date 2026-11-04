@@ -48,7 +48,7 @@ export const NotesSection: React.FC<NotesSectionProps> = ({ notes, saving, onAdd
         disabled={!anotacao.trim() || saving}
       >
         {saving ? (
-          <ActivityIndicator size="small" color={COLORS.white} />
+          <ActivityIndicator size="small" color={COLORS.onPrimary} />
         ) : (
           <Text style={styles.saveNoteText}>Salvar Anotação</Text>
         )}
@@ -117,7 +117,7 @@ const makeStyles = (COLORS: any) =>
       opacity: 0.5,
     },
     saveNoteText: {
-      color: COLORS.white,
+      color: COLORS.onPrimary,
       fontWeight: '700',
       fontSize: FONT_SIZES.md,
     },

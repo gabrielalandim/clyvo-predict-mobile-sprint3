@@ -183,7 +183,7 @@ const makeStyles = (COLORS: any) =>
       alignItems: 'center',
       marginBottom: SPACING.md,
     },
-    ctaButtonText: { color: COLORS.white, fontSize: FONT_SIZES.lg, fontWeight: '700' },
+    ctaButtonText: { color: COLORS.onPrimary, fontSize: FONT_SIZES.lg, fontWeight: '700' },
     footerNote: {
       fontSize: FONT_SIZES.sm,
       color: COLORS.textSecondary,
