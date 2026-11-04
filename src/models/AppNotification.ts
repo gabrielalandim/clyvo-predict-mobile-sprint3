@@ -1,8 +1,8 @@
-import { TipoEvento } from './HealthEvent';
+import { CareReminderType } from './CareReminder';
 
 export type AppNotificationData =
   | { kind: 'score-alert'; petId: string }
-  | { kind: 'care-reminder'; petId: string; tipoEvento: TipoEvento; reminderLabel: string };
+  | { kind: 'care-reminder'; petId: string; petName: string; reminderType: CareReminderType; scheduledFor: string };
 
 export interface NotificationPreferences {
   healthAlerts: boolean;

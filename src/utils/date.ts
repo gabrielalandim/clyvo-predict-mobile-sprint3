@@ -42,3 +42,12 @@ export function formatAgeFromBirthDate(birthDateBR: string, today: Date = new Da
 export function formatYears(age: number): string {
   return `${age} ${age === 1 ? 'ano' : 'anos'}`;
 }
+
+export function formatReminderDate(date: Date, now: Date = new Date()): string {
+  const time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const diffDays = Math.round((startOfDay(date) - startOfDay(now)) / 86400000);
+  if (diffDays === 0) return `Hoje às ${time}`;
+  if (diffDays === 1) return `Amanhã às ${time}`;
+  return `${date.toLocaleDateString('pt-BR')} às ${time}`;
+}

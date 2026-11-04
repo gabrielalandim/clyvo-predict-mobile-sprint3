@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { AppNotificationData } from '@models/AppNotification';
+import { getCareReminderType } from '@models/CareReminder';
 import { navigationRef } from '@navigation/navigationRef';
 import {
   configureNotificationHandler,
@@ -12,6 +13,14 @@ import {
 configureNotificationHandler();
 
 function openScreenFor(data: AppNotificationData) {
+  if (data.kind === 'care-reminder') {
+    const config = getCareReminderType(data.reminderType);
+    navigationRef.navigate('AddHealthEvent', {
+      petId: data.petId,
+      preset: { tipoEvento: config.tipoEvento, descricao: `${config.label} (lembrete agendado)` },
+    });
+    return;
+  }
   navigationRef.navigate('PetDetails', { petId: data.petId });
 }
 

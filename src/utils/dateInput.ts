@@ -23,3 +23,18 @@ export function fromIsoDate(isoDate: string): string {
   const [year, month, day] = isoDate.split('-');
   return `${day}/${month}/${year}`;
 }
+export function maskTimeInput(text: string): string {
+  const digits = text.replace(/\D/g, '').slice(0, 4);
+  if (digits.length <= 2) return digits;
+  return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+}
+export function isValidTimeInput(timeStr: string): boolean {
+  const match = /^(\d{2}):(\d{2})$/.exec(timeStr);
+  if (!match) return false;
+  return parseInt(match[1], 10) <= 23 && parseInt(match[2], 10) <= 59;
+}
+export function toDateTime(dateStr: string, timeStr: string): Date {
+  const [day, month, year] = dateStr.split('/').map((p) => parseInt(p, 10));
+  const [hours, minutes] = timeStr.split(':').map((p) => parseInt(p, 10));
+  return new Date(year, month - 1, day, hours, minutes, 0, 0);
+}

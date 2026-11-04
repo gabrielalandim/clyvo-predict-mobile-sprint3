@@ -2,6 +2,7 @@ import { api, extractApiErrorMessage } from './api';
 import { sessionStorage } from '@storage/sessionStorage';
 import { TutorAuthResponseDTO, TutorSession } from '@models/Auth';
 import { isTokenExpired } from '@utils/jwt';
+import { cancelAllScheduled } from './notificationService';
 export interface RegisterPayload {
   nome: string;
   email: string;
@@ -28,6 +29,7 @@ export const authService = {
   },
   async logout(): Promise<void> {
     await sessionStorage.clearSession();
+    await cancelAllScheduled().catch(() => undefined);
   },
   async getSession(): Promise<TutorSession | null> {
     const session = await sessionStorage.getSession();

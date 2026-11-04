@@ -25,9 +25,9 @@ interface Props {
 }
 const AddHealthEventScreen: React.FC<Props> = ({ navigation, route }) => {
   const { styles, colors: COLORS } = useThemedStyles(makeStyles);
-  const { petId, editEvent } = route.params;
+  const { petId, editEvent, preset } = route.params;
   const { isEditing, descricao, setDescricao, tipo, setTipo, dataTexto, setDataTexto, isSaving, submit } =
-    useHealthEventForm(petId, editEvent);
+    useHealthEventForm(petId, editEvent, preset);
 
   const handleSubmit = async () => {
     const result = await submit();

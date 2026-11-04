@@ -11,12 +11,18 @@ export interface EditableHealthEvent {
   dataEvento: string;
 }
 
-export function useHealthEventForm(petId: string, editEvent?: EditableHealthEvent) {
+export function useHealthEventForm(
+  petId: string,
+  editEvent?: EditableHealthEvent,
+  preset?: { tipoEvento: TipoEvento; descricao: string },
+) {
   const createEvent = useCreateHealthEvent();
   const updateEvent = useUpdateHealthEvent();
-  const [descricao, setDescricao] = useState(editEvent?.descricao ?? '');
-  const [tipo, setTipo] = useState<TipoEvento>(editEvent?.tipoEvento ?? 'VACINA');
-  const [dataTexto, setDataTextoRaw] = useState(editEvent ? fromIsoDate(editEvent.dataEvento) : '');
+  const [descricao, setDescricao] = useState(editEvent?.descricao ?? preset?.descricao ?? '');
+  const [tipo, setTipo] = useState<TipoEvento>(editEvent?.tipoEvento ?? preset?.tipoEvento ?? 'VACINA');
+  const [dataTexto, setDataTextoRaw] = useState(
+    editEvent ? fromIsoDate(editEvent.dataEvento) : preset ? new Date().toLocaleDateString('pt-BR') : '',
+  );
 
   const setDataTexto = (text: string) => setDataTextoRaw(maskDateInput(text));
 

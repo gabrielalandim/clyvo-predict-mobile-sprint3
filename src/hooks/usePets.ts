@@ -3,6 +3,7 @@ import { petService } from '@services/petService';
 import { PetFormData } from '@models/Pet';
 
 import { petKeys } from './petKeys';
+import { cancelRemindersForPet, careReminderKeys } from './useCareReminders';
 
 export { petKeys };
 
@@ -46,8 +47,10 @@ export function useDeletePet() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => petService.deletePet(id),
-    onSuccess: () => {
+    onSuccess: async (_data, id) => {
       queryClient.invalidateQueries({ queryKey: petKeys.all });
+      await cancelRemindersForPet(id).catch(() => undefined);
+      queryClient.invalidateQueries({ queryKey: careReminderKeys.all });
     },
   });
 }

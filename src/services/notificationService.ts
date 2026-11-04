@@ -73,6 +73,10 @@ export async function cancelScheduled(identifier: string): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync(identifier);
 }
 
+export async function cancelAllScheduled(): Promise<void> {
+  await Notifications.cancelAllScheduledNotificationsAsync();
+}
+
 export function parseNotificationData(data: unknown): AppNotificationData | null {
   const value = data as Partial<AppNotificationData> | undefined;
   if (!value || typeof value.petId !== 'string') return null;

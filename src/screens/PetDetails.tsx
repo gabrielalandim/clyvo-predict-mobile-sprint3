@@ -19,6 +19,9 @@ import { useThemedStyles } from '@hooks/useThemedStyles';
 import { useErrorAlert } from '@hooks/useErrorAlert';
 import { useRefetchOnFocus } from '@hooks/useRefetchOnFocus';
 import { usePetNotes } from '@hooks/usePetNotes';
+import { useCareReminders, useCancelCareReminder } from '@hooks/useCareReminders';
+import { UpcomingCareCard } from '@components/UpcomingCareCard';
+import { CareReminder } from '@models/CareReminder';
 
 type PetDetailsNavigationProp = StackNavigationProp<RootStackParamList, 'PetDetails'>;
 type PetDetailsRouteProp = RouteProp<RootStackParamList, 'PetDetails'>;
@@ -38,12 +41,22 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   const { notes, addNote, removeNote, saving: savingNote } = usePetNotes(petId);
   const [infoModalVisible, setInfoModalVisible] = useState(false);
 
-  useRefetchOnFocus(refetchPet, refetchEvents);
+  const { data: reminders = [], refetch: refetchReminders } = useCareReminders(petId);
+  const cancelReminder = useCancelCareReminder();
+
+  useRefetchOnFocus(refetchPet, refetchEvents, refetchReminders);
 
   useErrorAlert(petError, 'Erro');
 
   useErrorAlert(eventsError, 'Erro ao carregar histórico');
 
+
+  const handleCancelReminder = (reminder: CareReminder) => {
+    Alert.alert('Cancelar lembrete', 'Quer cancelar este lembrete?', [
+      { text: 'Não', style: 'cancel' },
+      { text: 'Sim, cancelar', style: 'destructive', onPress: () => cancelReminder.mutate(reminder.id) },
+    ]);
+  };
 
   const handleOpenMenu = () => {
     if (!pet) return;
@@ -169,13 +182,11 @@ const PetDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
             />
           </View>
 
-          <View style={styles.sectionCard}>
-            <View style={styles.rowBetween}>
-              <Text style={styles.sectionTitle}>PRÓXIMA CONSULTA</Text>
-              <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
-            </View>
-            <Text style={styles.infoText}>Nenhuma consulta agendada para os próximos dias.</Text>
-          </View>
+          <UpcomingCareCard
+            reminders={reminders}
+            onSchedule={() => navigation.navigate('ScheduleReminder', { petId: pet.id, petName: pet.name })}
+            onCancel={handleCancelReminder}
+          />
 
           <NotesSection notes={notes} saving={savingNote} onAdd={addNote} onRemove={removeNote} />
 

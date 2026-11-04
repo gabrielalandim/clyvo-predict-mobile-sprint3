@@ -16,6 +16,7 @@ export type RootStackParamList = {
   };
   AddHealthEvent: {
     petId: string;
+    preset?: { tipoEvento: TipoEvento; descricao: string };
     editEvent?: {
       id: string;
       tipoEvento: TipoEvento;
@@ -28,4 +29,5 @@ export type RootStackParamList = {
   TutorProfile: undefined;
   EditProfile: { mode: 'profile' | 'password' };
   Info: { topic: InfoTopic };
+  ScheduleReminder: { petId: string; petName: string };
 };
