@@ -1,22 +1,20 @@
-# 🐾 CLYVO Predict — App Mobile (Sprint 3)
+# 🐾 CLYVO Predict — App Mobile (Sprint 4 · entrega final)
 
 > *Do Reativo ao Preventivo*
 
-Aplicativo mobile desenvolvido para o **FIAP Challenge 2026** (2TDS · 3ª Sprint — Mobile Application Development).
-Nesta entrega o app deixou de usar dados 100% locais (AsyncStorage) e passou a consumir a **API Java (Spring Boot)** de verdade, incluindo login com JWT, CRUD completo de pets e de eventos de saúde (Create, Read, Update e Delete, nas duas funcionalidades), histórico com score calculado pelo backend, e cadastro de pet por foto usando IA (Python) — sempre através do backend.
+Aplicativo mobile do **FIAP Challenge 2026 × Clyvo** (2TDS · Mobile Application Development).
+Na sprint 4 o app foi finalizado: todas as telas têm ação real, a integração usa a **API Java da sprint 4**, o JWT passou a ficar em **armazenamento criptografado**, o app ganhou **notificações locais** ligadas ao fluxo de saúde do pet e foi **publicado no Firebase App Distribution**.
 
 ---
 
-## 🎥 Vídeo de Apresentação
+## 📦 Entrega
 
-📺 **[Assista no YouTube](https://www.youtube.com/watch?v=EkIr_Zg2mhk)**
-
-O vídeo demonstra, na ordem exigida pelo enunciado:
-- Navegação entre as telas do app
-- Sistema de autenticação (cadastro, login com JWT e sessão persistida)
-- Integração com a API backend (cadastro de pet manual e via IA, edição, exclusão)
-- CRUD completo de eventos de saúde (registrar, editar e excluir), com o score recalculado em tempo real
-- Comportamento do aplicativo em uso real, rodando em dispositivo físico
+| Item | Onde |
+|---|---|
+| 🎥 Vídeo de apresentação (sprint 4) | **[COLE AQUI O LINK DO YOUTUBE]** |
+| 📲 App publicado | Firebase App Distribution — o e-mail institucional do professor está cadastrado como tester |
+| 🔖 Versão publicada | `1.0.0` · commit **`[COLE AQUI O HASH CURTO]`** (o mesmo exibido em **Perfil › Sobre o App**) |
+| ☕ API Java (sprint 4) | `clyvo-predict-sprint-04` — hospedada em **[COLE AQUI A URL DA API]** |
 
 ---
 
@@ -32,305 +30,207 @@ O vídeo demonstra, na ordem exigida pelo enunciado:
 
 ---
 
-## 🧩 Arquitetura geral
+## ✅ Feedback da sprint 3 → o que mudou
 
-```
-┌──────────────┐        HTTP + JWT        ┌───────────────┐      HTTP interno      ┌──────────────┐
-│  App Mobile  │ ───────────────────────▶ │  API Java     │ ─────────────────────▶ │  IA (Python) │
-│ (Expo / RN)  │ ◀─────────────────────── │ (Spring Boot) │ ◀───────────────────── │  gemini/etc  │
-└──────────────┘                          └───────┬───────┘                        └──────────────┘
-                                                   │
-                                                   ▼
-                                             Oracle (FIAP)
-```
-
-**O mobile nunca fala com o Python.** Ele só chama a API Java; é o Java quem decide chamar o serviço de IA (`clyvo.ai.url`, hoje apontando pra `http://localhost:5000`).
-
-### Fluxo de cadastro com foto
-
-```
-Usuário escolhe/tira foto
-        │
-        ▼
-POST /api/pets/analisar-cadastro  (multipart, campo "imagem")
-        │
-        ▼
-   Java repassa a imagem pro Python
-        │
-        ▼
-   IA analisa e devolve espécie, raça, cor, porte, faixa de peso, condição corporal
-        │
-        ▼
-   App pré-preenche o formulário (tudo editável)
-        │
-        ▼
-   Usuário confirma / edita
-        │
-        ▼
-POST /api/pets   (só agora o pet é salvo de verdade)
-```
-
-### Fluxo de cadastro manual
-
-```
-Cadastro manual → formulário vazio → usuário preenche tudo → POST /api/pets
-```
-
-Os dois fluxos passam pela mesma tela (`AddPet.tsx`), diferenciados por um parâmetro de rota (`mode: 'manual' | 'photo'`), acessados a partir da tela de escolha (`AddPetChoice.tsx`).
-
-### Fluxo de CRUD de eventos de saúde
-
-```
-Registrar  → POST /api/eventos                          → score recalculado no backend
-Consultar  → GET  /api/eventos/pet/{petId}               → histórico + gráfico de evolução
-Editar     → PUT  /api/eventos/{id}    (menu do evento em PetDetails)
-Excluir    → DELETE /api/eventos/{id}  (menu do evento em PetDetails)
-```
-
-Create, Read, Update e Delete acessíveis diretamente pela interface, com cache do TanStack Query invalidado automaticamente após cada operação.
-
----
-
-## ⚙️ Stack Tecnológica
-
-- **Framework:** React Native + Expo SDK 58
-- **Linguagem:** TypeScript (strict mode)
-- **Navegação:** React Navigation Stack v7, com troca de stack (auth vs. app) conforme sessão
-- **HTTP:** Axios, com interceptor que injeta `Authorization: Bearer <token>` automaticamente
-- **Cache e estado assíncrono:** TanStack Query (`useQuery`/`useMutation`) — toda leitura e escrita contra a API (pets e eventos de saúde) passa pelos hooks em `src/hooks/` (`usePets.ts`, `useHealthEvents.ts`), isolados da camada de UI, com invalidação automática de cache após criar/editar/excluir
-- **Autenticação:** JWT emitido pela API Java (`POST /api/tutores/login`), guardado com AsyncStorage (só o token/identidade — ver seção de limitações)
-- **Upload de imagem:** `expo-image-picker` (câmera ou galeria) + `FormData`/`multipart/form-data`
-- **Exportação de PDF:** `expo-print` + `expo-sharing` — geração da carteirinha digital do pet em PDF
-- **Ícones:** Expo Vector Icons (Ionicons)
-
----
-
-## 🚀 Como rodar tudo junto (Java + Python + Mobile)
-
-Isso **precisa rodar em 3 processos separados, ao mesmo tempo**, na mesma rede:
-
-### 1. Backend Java (`clyvo-predict-main`)
-
-```bash
-cd clyvo-predict-main
-./mvnw spring-boot:run
-```
-
-Confirme em `src/main/resources/application.properties`:
-- `server.port=8080`
-- `clyvo.ai.url=http://localhost:5000` → precisa apontar pro endereço onde o serviço Python está rodando (se Java e Python estiverem na mesma máquina, `localhost` funciona; se estiverem em máquinas diferentes, troque pelo IP da máquina do Python).
-- Conexão Oracle FIAP configurada (usuário/senha do banco).
-
-### 2. Serviço de IA (Python)
-
-Precisa expor, na porta que `clyvo.ai.url` aponta:
-- `POST /api/v2/pets/analyze-registration-photo` (chamado pelo Java a partir de `/api/pets/analisar-cadastro`)
-- `POST /api/v2/score/consolidado` (chamado pelo Java a partir de `/api/ia/score`)
-
-> ⚠️ **Sobre a chave de API**: se o arquivo `.env` do serviço Python tiver uma `GOOGLE_API_KEY` em texto puro, revoguem essa chave no Google AI Studio e gerem uma nova antes de subir o repositório publicamente. Nunca commitem esse arquivo.
-
-### 3. Mobile
-
-Antes de rodar, configure o IP do Java em **`src/config/env.ts`**:
-
-```typescript
-const API_HOST = '192.168.1.4'; // troque pelo IP da máquina rodando o Java
-const API_PORT = 8080;
-```
-
-| Onde vai testar | `API_HOST` |
+| Feedback do professor | O que fizemos |
 |---|---|
-| Emulador Android (AVD) | `10.0.2.2` |
-| Simulador iOS | `localhost` |
-| Celular físico (Expo Go) | IP da máquina do Java na mesma Wi-Fi (`ipconfig` / `ifconfig`) |
-
-```bash
-npm install
-npm start
-```
-
-Escaneie o QR Code com o **Expo Go**, ou rode `npm run android` / `npm run ios`.
-
-**Ordem de inicialização recomendada:** Python → Java → Mobile (o Java só falha na hora de chamar `/analisar-cadastro`; as demais rotas de pets/tutores/eventos funcionam mesmo com o Python desligado).
+| **"Não usar AsyncStorage para persistência do JWT, utilize um banco criptografado"** | A sessão (JWT) vai para o **`expo-secure-store`** (Keychain no iOS / Keystore no Android) em `src/storage/sessionStorage.ts`. Sessões antigas no AsyncStorage são migradas e apagadas na primeira abertura. Token vencido (`exp`) é descartado ao abrir o app. |
+| **"Centralizar mais a lógica de telas em hooks"** | Toda a lógica de formulário, validação, filtros e cálculos saiu das telas para hooks (`usePetForm`, `useHealthEventForm`, `useLoginForm`, `useRegisterForm`, `usePetScoreHistory`, `usePetWallet`, `usePetNotes`, `useEditProfileForm`, `useReminderForm`…). Nenhuma tela ou componente importa `services/`, `storage/` ou `AsyncStorage`. |
 
 ---
 
-## 📱 Telas do Aplicativo
+## 🆕 Novidades da sprint 4
 
-| Tela | Rota | Descrição |
+- **Integração com a API da sprint 4**
+  - Novos tipos de evento do backend: `RELATO_SINTOMA` e `ALTERACAO_COMPORTAMENTO` (−5 pts cada).
+  - O tutor do pet passa a ser definido pelo **JWT** no backend (o app não envia mais `tutorId`).
+  - `403` agora significa "recurso de outro tutor" e não derruba mais a sessão; só `401` encerra o login.
+  - **Editar perfil e alterar senha** com `GET/PUT /api/tutores/{id}` (com confirmação da senha atual e renovação do token).
+- **Notificações locais (expo-notifications)** — ver seção abaixo.
+- **Telas que antes não tinham ação agora funcionam**: sino da Home (central de notificações), Editar Perfil, Alterar Senha, Central de Ajuda, Termos de Uso, Privacidade (LGPD), Ver Premium, Sobre o App, switches de preferências e o card "Próximos cuidados".
+- **Tela "Sobre o App"** com versão, data do build e **hash do commit** da versão publicada.
+- **Correção de navegação**: no React Navigation 7 o `navigate()` empilhava telas repetidas (voltar levava ao formulário já salvo). Agora usamos `popTo`/`goBack` e a barra inferior reaproveita a aba aberta.
+- **Tema claro/escuro** segue o sistema até o usuário escolher no perfil.
+- **Publicação**: `eas.json` gera APK, URL da API vem de variável de ambiente (`EXPO_PUBLIC_API_URL`), `requireCommit` garante que todo build corresponde a um commit.
+
+---
+
+## 🔔 Notificações (local)
+
+Escolhemos **notificações locais** porque os dois cenários nascem de eventos reais do próprio app — sem mensagens fixas nem disparo manual.
+
+### 1. Alerta de saúde (disparado pelo processamento do backend)
+
+1. O tutor registra, edita ou exclui um evento de saúde.
+2. A API recalcula o **Score de Saúde** e devolve o novo valor.
+3. O hook de mutação compara com o score anterior (cache do TanStack Query) e aplica a regra de `src/utils/scoreAlerts.ts`:
+   - mudou de faixa (**Excelente ≥ 80 · Regular 50–79 · Crítico < 50**) → notifica;
+   - continuou caindo dentro da faixa crítica → notifica;
+   - variação dentro da mesma faixa → não notifica.
+4. A notificação aparece **na hora, com o app aberto** (banner em foreground) — ex.: *"🚨 Score de Thor está crítico — O Score de Saúde caiu de 70 para 40…"*.
+5. **Tocar** na notificação abre os **detalhes do pet**.
+
+### 2. Lembrete de cuidado (agendado pelo tutor)
+
+1. Em **Detalhes do pet › Próximos cuidados › Agendar lembrete**, o tutor escolhe consulta, vacina ou exame + data e horário.
+2. O app agenda uma notificação local no sistema; ela toca **mesmo com o app fechado**.
+3. **Tocar** no lembrete abre **Registrar Evento** já com o tipo e a descrição preenchidos — o tutor só confirma, e o score é atualizado na API.
+
+### Integração com o resto do app
+- **Central de notificações** no sino da Home, com badge apenas quando há itens não lidos.
+- **Preferências** em Perfil: "Alertas de saúde" e "Lembretes de cuidados" (pedem permissão ao sistema quando ligados).
+- Lembretes são cancelados ao excluir o pet ou sair da conta.
+
+---
+
+## 📱 Telas
+
+| Tela | Rota | O que faz |
 |---|---|---|
 | Welcome | `Welcome` | Onboarding |
-| Login | `Login` | Autenticação via `POST /api/tutores/login`, guarda o JWT |
-| Cadastro de tutor | `Register` | `POST /api/tutores`, loga automaticamente depois |
-| Home | `Home` | Lista pets vindos de `GET /api/pets`, com pull-to-refresh |
-| Escolha de cadastro | `AddPetChoice` | "Cadastrar pet manualmente" vs. "Cadastrar pet com IA" |
-| Cadastrar/Editar Pet | `AddPet` | Formulário único para criar (manual ou por foto) e editar (`mode: manual \| photo \| edit`) |
-| Detalhes do Pet | `PetDetails` | Dados de `GET /api/pets/{id}` + histórico de eventos + editar/excluir pet e eventos |
-| Registrar/Editar Evento | `AddHealthEvent` | `POST`/`PUT /api/eventos` — vacina, consulta, exame, doença leve/grave, cirurgia, acidente |
-| Histórico | `PetHistory` | Gráfico de evolução do score e breakdown por período, a partir dos eventos reais da API |
-| Carteirinha Médica | `PetMedicalScreen` | Carteira digital, com exportação em PDF |
-| Perfil | `tutorProfile` | Dados da sessão logada + logout real (limpa o JWT) |
+| Login | `Login` | `POST /api/tutores/login`, guarda o JWT no SecureStore |
+| Cadastro | `Register` | `POST /api/tutores` e login automático |
+| Home | `Home` | Lista de pets (`GET /api/pets`), sino de notificações, planos |
+| Escolha de cadastro | `AddPetChoice` | Manual ou com IA |
+| Cadastrar/Editar pet | `AddPet` | Formulário único (`manual`/`photo`/`edit`), análise de foto via `POST /api/pets/analisar-cadastro` |
+| Detalhes do pet | `PetDetails` | Score, breakdown, próximos cuidados, anotações, histórico com editar/excluir evento |
+| Registrar/Editar evento | `AddHealthEvent` | `POST`/`PUT /api/eventos` (9 tipos), também aberto pelo lembrete |
+| Agendar lembrete | `ScheduleReminder` | Agenda notificação local de consulta/vacina/exame |
+| Histórico | `PetHistory` | Gráfico de evolução e breakdown por período |
+| Carteirinha | `PetWallet` | Carteira digital com exportação em PDF |
+| Notificações | `Notifications` | Central com alertas e lembretes recebidos |
+| Perfil | `TutorProfile` | Estatísticas, conta, preferências, suporte, logout |
+| Editar perfil / senha | `EditProfile` | `GET`/`PUT /api/tutores/{id}` |
+| Ajuda, Termos, Privacidade | `Info` | Conteúdo de suporte e LGPD |
+| Sobre o App | `About` | Versão, data do build, hash do commit, URL da API e equipe |
 
 ---
 
-## 📁 Estrutura de Pastas
+## 🧩 Arquitetura
+
+```
+Telas (screens/) ──▶ Hooks (hooks/) ──▶ Services (services/) ──▶ API Java / sistema
+       │                    │                 └──▶ Storage (storage/) ──▶ SecureStore / AsyncStorage
+       ▼                    ▼
+ Componentes de UI    Regras puras (utils/) + Tipos (models/)
+```
+
+- **screens/** e **components/**: só interface. Recebem dados e callbacks dos hooks; mostram alertas e navegam.
+- **hooks/**: TanStack Query (`useQuery`/`useMutation`), estado de formulários, orquestração (ex.: alerta de score após mutação).
+- **services/**: acesso a dados externos — HTTP com Axios (`api.ts`, `petService`, `healthEventService`, `tutorService`, `authService`) e notificações do sistema (`notificationService`).
+- **storage/**: persistência no aparelho — `sessionStorage` (SecureStore), preferências, anotações, extras do pet e central de notificações.
+- **utils/**: regras de negócio puras e testáveis (faixas de score, regra do alerta, gráfico do histórico, datas, validações, JWT).
+- **models/**: tipos alinhados aos DTOs da API.
+- **navigation/**: rotas tipadas, `navigationRef` e o mapeamento notificação → tela.
 
 ```
 src/
-├── config/
-│   └── env.ts                 # IP/porta da API Java
-├── constants/
-│   ├── theme.ts                # Design tokens (cores)
-│   └── races.ts                # Raças suportadas por espécie
-├── utils/
-│   ├── species.ts               # Normalização única de espécie (corrige bug de ícone)
-│   ├── dateInput.ts              # Máscara + validação real de data
-│   └── petPdf.ts                 # Geração da carteirinha em PDF
-├── models/
-│   ├── Pet.ts                    # Alinhado ao PetResponseDTO
-│   ├── HealthEvent.ts            # TipoEvento alinhado ao enum real do backend
-│   ├── Auth.ts
-│   └── PetAiAnalysis.ts          # Espelha a resposta de /analisar-cadastro
-├── services/                     # Camada de acesso a dados (chamadas HTTP puras)
-│   ├── api.ts                     # Axios + interceptor JWT + parser de erro do Spring
-│   ├── session.ts                 # Guarda só o token/identidade (AsyncStorage)
-│   ├── authService.ts             # Login/registro/logout reais
-│   ├── petService.ts              # CRUD real de pets + análise de foto
-│   ├── healthEventService.ts      # CRUD real de eventos de saúde (Create/Read/Update/Delete)
-│   └── petExtrasStorage.ts        # Só os campos que o backend ainda não persiste
-├── hooks/                         # TanStack Query — isolado da camada de UI
-│   ├── usePets.ts                  # useQuery/useMutation de pets + análise por IA
-│   └── useHealthEvents.ts          # useQuery/useMutation de eventos de saúde
-├── contexts/
-│   ├── ThemeContext.tsx
-│   └── AuthContext.tsx             # Sessão do tutor disponível em todo o app
-├── components/                     # Componentes reutilizáveis de UI
-│   ├── PetCard.tsx
-│   ├── PetIdentityCard.tsx
-│   ├── WalletHeader.tsx
-│   ├── FactorBar.tsx
-│   ├── NotesSection.tsx
-│   ├── PlansSection.tsx
-│   ├── PlanDetailsModal.tsx
-│   ├── ScoreInfoModal.tsx
-│   └── BottomBarTab.tsx
-├── navigation/
-│   ├── AppNavigator.tsx             # Rotas + troca de stack por sessão
-│   └── types.ts
-└── screens/                         # Telas — só consomem os hooks acima
+├── components/   BottomTabBar, PetCard, NotesSection, UpcomingCareCard, PlanDetailsModal…
+├── config/       env.ts (URL da API via EXPO_PUBLIC_API_URL)
+├── constants/    theme, races, plans, infoContent, team
+├── contexts/     AuthContext, ThemeContext
+├── hooks/        usePets, useHealthEvents, usePetForm, useHealthEventForm, useScoreAlerts,
+│                 useCareReminders, useNotificationNavigation, useThemedStyles…
+├── models/       Pet, HealthEvent, Auth, Tutor, CareReminder, AppNotification, FormResult…
+├── navigation/   AppNavigator, types, navigationRef, notificationRoutes
+├── screens/      16 telas
+├── services/     api, authService, petService, healthEventService, tutorService, notificationService
+├── storage/      sessionStorage (SecureStore), preferencesStorage, petNotesStorage,
+│                 petExtrasStorage, notificationInboxStorage
+└── utils/        score, scoreAlerts, scoreHistory, healthEvents, date, dateInput, validation, jwt, appInfo, petPdf
 ```
 
-Camadas separadas de propósito: **telas** não chamam API diretamente, apenas os **hooks**; os **hooks** não sabem de UI, apenas orquestram cache; os **services** só sabem fazer requisições HTTP. Nenhuma lógica de negócio ou chamada HTTP fica dentro de componente de tela.
+**Stack:** React Native 0.88 + Expo SDK 58 · TypeScript (strict) · React Navigation 7 · TanStack Query 5 · Axios · expo-secure-store · expo-notifications · expo-image-picker · expo-print/expo-sharing.
 
 ---
 
-## 🐛 Bugs corrigidos ao longo da sprint
+## 🚀 Como rodar
 
-1. **Import quebrado do modelo `Pet`** — consolidado em um único `src/models/Pet.ts`.
-2. **Ícone de raça errado em "Outros"** — centralizado em `src/utils/species.ts` (`normalizeSpecies`), usado por todo o app, inclusive pelas sugestões da IA.
-3. **Histórico de saúde incompatível com o backend** — o enum local tinha valores (`VERMIFUGO`, `EMERGENCIA`) que não existem no `TipoEvento.java` real. Corrigido em `src/models/HealthEvent.ts`, com os 7 valores reais e o impacto de score de cada um espelhando o backend.
-4. **Data inválida podendo ser enviada pro backend** (`dataEvento: "2026-89-01"` → 400 do Spring) — corrigido com máscara + validação de calendário real em `src/utils/dateInput.ts`.
-5. **CRUD de eventos de saúde incompleto** — o backend só expunha `POST` e `GET`; os endpoints `PUT`/`DELETE` de `/api/eventos/{id}` foram implementados no `EventoSaudeController`, e o mobile já tinha o client (`healthEventService.ts`) e a UI (menu do evento em `PetDetails.tsx`) prontos esperando por eles. Editar e excluir evento de saúde agora funcionam de ponta a ponta.
+São 3 processos: **Python (IA) → Java (API) → Mobile**. Só o cadastro por foto depende do Python.
+
+### 1. API Java (`clyvo-predict-sprint-04`)
+
+```bash
+# variáveis do banco Oracle FIAP (não vão para o Git)
+export DB_USERNAME=rmXXXXX
+export DB_PASSWORD=sua_senha
+./mvnw spring-boot:run          # Windows: .\mvnw.cmd spring-boot:run
+```
+
+- A chave `src/main/resources/keys/private_key.pem` **não está no Git**; peça ao grupo ou gere um par novo (ver README da API).
+- Teste em `http://localhost:8080/swagger-ui.html`.
+
+### 2. Serviço de IA (Python)
+
+Rodando na URL de `clyvo.ai.url` (padrão `http://localhost:5000`).
+
+### 3. Mobile
+
+```bash
+npm install
+cp .env.example .env.local      # edite EXPO_PUBLIC_API_URL com o IP da máquina do Java
+npx expo start -c
+```
+
+| Onde vai testar | `EXPO_PUBLIC_API_URL` |
+|---|---|
+| Emulador Android | `http://10.0.2.2:8080/api` |
+| Simulador iOS | `http://localhost:8080/api` |
+| Celular físico (Expo Go) | `http://IP_DO_PC:8080/api` (mesma Wi-Fi) |
+
+> As notificações locais funcionam no Expo Go; para o fluxo completo use o APK publicado.
+
+`npm run typecheck` roda o TypeScript em modo estrito.
+
+---
+
+## 📲 Publicação (Firebase App Distribution)
+
+1. API hospedada e URL configurada em `eas.json` › `build.preview.env.EXPO_PUBLIC_API_URL`.
+2. `git commit` de tudo (o EAS recusa build com alterações não commitadas — `requireCommit`).
+3. `eas build -p android --profile preview` → gera o **APK**.
+4. Firebase Console › App Distribution › enviar o APK › adicionar o **e-mail institucional do professor** como tester.
+5. Conferir no celular: **Perfil › Sobre o App** mostra o mesmo hash do commit usado no build.
+
+---
+
+## 📋 Requisitos da sprint 4
+
+| Requisito | Status | Onde |
+|---|---|---|
+| Implementação funcional de todas as telas (20) | ✅ | 16 telas, nenhum botão sem ação; fluxo completo cadastro → pet → evento → score → alerta/lembrete → histórico/carteirinha |
+| Publicação do aplicativo (20) | ✅ | Firebase App Distribution + tela **Sobre o App** com hash do commit |
+| Notificações (20) | ✅ | Local: alerta de score (evento do backend) + lembretes agendados, ambos com navegação ao tocar |
+| Arquitetura e organização (20) | ✅ | screens → hooks → services/storage, utils puros, sem HTTP/regra de negócio em tela |
+| Vídeo de apresentação (20) | ✅ | Link no topo deste README |
+| Tema claro/escuro | ✅ | `ThemeContext` + `useThemedStyles` em todas as telas |
 
 ---
 
 ## ⚠️ Limitações conhecidas
 
-- **Backend só persiste `nome, especie, raca, idade, peso, healthScore`** na entidade `Pet`. Campos como foto, cor, porte, condição corporal, sexo, castração e microchip — que a tela pede e a IA devolve — ficam guardados **localmente por `id` do pet** (`petExtrasStorage.ts`), só para completar a experiência visual. **Nome, espécie, raça, idade, peso e score sempre vêm/vão pela API real.** Não é "fingir integração", é uma limitação documentada do schema atual do banco.
-- **`EventoSaude` ainda não persiste o score histórico de cada evento** — o backend devolve o score *atual* do pet repetido em todos os eventos da lista, em vez do score no momento em que cada evento aconteceu. O app contorna isso mostrando o impacto fixo de cada categoria (Vacina +10, Consulta +5, Exame +5, Doença leve −15, Cirurgia −30, Doença grave −40, Acidente −50) em vez de reconstruir um histórico que a API não sustenta.
-- Não recebemos o repositório do serviço Python nesta entrega — só o contrato (request/response) foi validado contra o código Java real (`ClyvoAiService.java`, `PetRegistrationAiResponseDTO.java`).
+- O backend persiste só `nome, espécie, raça, idade, peso, healthScore` do pet. Foto, sexo, castração, microchip, cor, porte e condição corporal ficam no aparelho (`storage/petExtrasStorage.ts`).
+- `EventoSaude` não guarda o score histórico de cada evento; o gráfico do histórico reconstrói os meses a partir do score atual e do impacto de cada evento.
+- Anotações do tutor, lembretes e a central de notificações ficam no aparelho (não há endpoints para eles na API).
 
 ---
 
 ## 🧠 Score de Saúde (0–100)
 
-Calculado pelo **backend** a cada evento (`TipoEvento.calcularNovoScore`), não localmente:
+Calculado pelo **backend** (`TipoEvento.calcularNovoScore`). Todo pet começa com 100.
 
 | Evento | Impacto |
 |---|---|
-| Vacina | +10 pts |
-| Consulta de rotina | +5 pts |
-| Exame | +5 pts |
-| Doença leve | −15 pts |
-| Cirurgia | −30 pts |
-| Doença grave | −40 pts |
-| Acidente | −50 pts |
-
-| Faixa | Status |
-|---|---|
-| 80–100 | Excelente |
-| 50–79 | Regular |
-| 0–49 | Crítico |
+| Vacina | +10 |
+| Consulta de rotina | +5 |
+| Exame | +5 |
+| Relato de sintoma | −5 |
+| Mudança de comportamento | −5 |
+| Doença leve | −15 |
+| Cirurgia | −30 |
+| Doença grave | −40 |
+| Acidente | −50 |
 
 ---
 
-## 🔐 Autenticação
-
-- `POST /api/tutores` — cria a conta do tutor.
-- `POST /api/tutores/login` — devolve `{ id, nome, email, perfil, token }`; o `token` (JWT) é salvo via `session.ts` e reenviado em todo request subsequente pelo interceptor do Axios (`api.ts`).
-- Rotas de `/api/pets/**` e `/api/eventos/**` exigem `ROLE_TUTOR` ou `ROLE_VETERINARIO` — o app assume perfil de tutor.
-- Sessão persistida: o usuário não precisa autenticar de novo ao reabrir o app.
-- Telas protegidas: o `AppNavigator` só monta o stack interno quando há sessão válida — não é possível acessar telas internas por navegação direta sem login.
-- Logout limpa o token local e volta pro fluxo de autenticação; não existe endpoint de logout no backend (JWT stateless), então é só descartar o token do dispositivo mesmo.
-
----
-
-## 🐾 Espécies e Raças Suportadas
-
-**Cão:** Golden Retriever, Vira-lata (SRD), Pastor Alemão, Bulldog, Labrador, Pinscher
-**Gato:** Persa, Siamês, Vira-lata (SRD), Maine Coon, Angorá, Ragdoll
-**Outro:** Calopsita, Coelho Netherland, Hamster Sírio, Porquinho da Índia, Ferret, Chinchila
-
-Se a IA sugerir uma raça fora dessa lista fixa, o app cai automaticamente no modo "raça digitada" (`isCustomBreed`) para não esconder o palpite da IA atrás de uma lista incompleta.
-
----
-
-## 📋 Requisitos avaliativos da Sprint 3 — status
-
-| Requisito | Status | Onde |
-|---|---|---|
-| Navegação entre telas (5 pts) | ✅ | 11 rotas, `AppNavigator.tsx`, com troca de stack por sessão |
-| Integração com API Backend HTTP (35 pts) | ✅ | TanStack Query (`src/hooks/`) sobre `petService.ts`/`healthEventService.ts`/`authService.ts` — CRUD completo de pets e eventos, com loading state e tratamento de erro |
-| Sistema de autenticação — Login (20 pts) | ✅ | JWT real via `/api/tutores/login`, sessão persistida, rotas protegidas (stack condicional), logout funcional |
-| Arquitetura e organização do código (20 pts) | ✅ | Camadas separadas: `screens` (UI) / `hooks` (TanStack Query) / `services` (API) / `models` (tipos) / `contexts` (estado global) / `utils` (regras compartilhadas) |
-| Documentação e apresentação (20 pts) | ✅ | Este README + vídeo de apresentação publicado no YouTube (link no topo deste documento) |
-
----
-
-## 🎨 Design System
-
-```typescript
-// src/constants/theme.ts
-COLORS = {
-  primary:     '#289fce',
-  secondary:   '#126ca8',
-  accent:      '#F96167',
-  dark:        '#1E2761',
-  scoreGreen:  '#5792aa',
-  scoreYellow: '#FFD93D',
-  scoreRed:    '#F96167',
-  background:  '#F8F9FA',
-  border:      '#E0E0E0',
-}
-```
-
-### Path Aliases (tsconfig.json)
-
-```
-@components/*  → src/components/*
-@screens/*     → src/screens/*
-@services/*    → src/services/*
-@hooks/*       → src/hooks/*
-@models/*      → src/models/*
-@constants/*   → src/constants/*
-@navigation/*  → src/navigation/*
-@contexts/*    → src/contexts/*
-@config/*      → src/config/*
-@utils/*       → src/utils/*
-```
-
----
-
-## 📄 Licença
-
-Projeto acadêmico — FIAP Challenge 2026. Todos os direitos reservados à equipe.
+Projeto acadêmico — FIAP Challenge 2026 × Clyvo.
