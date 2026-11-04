@@ -4,8 +4,10 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AppNavigator from './src/navigation/AppNavigator';
+import { navigationRef } from './src/navigation/navigationRef';
 import { ThemeProvider } from './src/contexts/ThemeContext';
-import { AuthProvider } from './src/contexts/AuthContext';
+import { AuthProvider, useAuth } from './src/contexts/AuthContext';
+import { useNotificationNavigation } from './src/hooks/useNotificationNavigation';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,15 +18,23 @@ const queryClient = new QueryClient({
   },
 });
 
+function AppContent() {
+  const { session } = useAuth();
+  const { onNavigationReady } = useNotificationNavigation(!!session);
+  return (
+    <NavigationContainer ref={navigationRef} onReady={onNavigationReady}>
+      <AppNavigator />
+    </NavigationContainer>
+  );
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
         <ThemeProvider>
           <AuthProvider>
-            <NavigationContainer>
-              <AppNavigator />
-            </NavigationContainer>
+            <AppContent />
           </AuthProvider>
         </ThemeProvider>
       </SafeAreaProvider>

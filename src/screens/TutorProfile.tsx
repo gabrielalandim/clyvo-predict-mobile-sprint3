@@ -9,6 +9,7 @@ import { useTheme } from '@contexts/ThemeContext';
 import { useAuth } from '@contexts/AuthContext';
 import { useState } from 'react';
 import { useTutorStats } from '@hooks/useTutorStats';
+import { useNotificationPreferences } from '@hooks/useNotificationPreferences';
 import { PlanDetailsModal } from '@components/PlanDetailsModal';
 import { getPlan, priceFor, PricedPlan } from '@constants/plans';
 type TutorProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'TutorProfile'>;
@@ -19,8 +20,7 @@ export default function TutorProfileScreen({ navigation }: Props) {
   const { isDark, colors: COLORS, toggleTheme } = useTheme();
   const styles = makeStyles(COLORS);
   const { session, logout } = useAuth();
-  const [notifications, setNotifications] = useState<boolean>(true);
-  const [whatsappAlerts, setWhatsappAlerts] = useState<boolean>(true);
+  const { preferences, setPreference } = useNotificationPreferences();
 
   const { petCount, eventCount } = useTutorStats();
   const [planDetails, setPlanDetails] = useState<PricedPlan | null>(null);
@@ -158,13 +158,13 @@ export default function TutorProfileScreen({ navigation }: Props) {
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="notifications-outline" size={22} color={COLORS.primary} />
                   <View style={styles.textBlock}>
-                    <Text style={styles.menuItemTitle}>Notificações</Text>
-                    <Text style={styles.menuItemSubtitle}>Push notifications</Text>
+                    <Text style={styles.menuItemTitle}>Alertas de saúde</Text>
+                    <Text style={styles.menuItemSubtitle}>Aviso quando o score muda de faixa</Text>
                   </View>
                 </View>
                 <Switch
-                  value={notifications}
-                  onValueChange={setNotifications}
+                  value={preferences.healthAlerts}
+                  onValueChange={(enabled) => setPreference('healthAlerts', enabled)}
                   trackColor={{ false: '#D5D8DC', true: COLORS.primary }}
                   thumbColor={COLORS.white}
                 />
@@ -174,15 +174,15 @@ export default function TutorProfileScreen({ navigation }: Props) {
 
               <View style={styles.menuItem}>
                 <View style={styles.menuItemLeft}>
-                  <Ionicons name="logo-whatsapp" size={22} color={COLORS.primary} />
+                  <Ionicons name="alarm-outline" size={22} color={COLORS.primary} />
                   <View style={styles.textBlock}>
-                    <Text style={styles.menuItemTitle}>Alertas WhatsApp</Text>
-                    <Text style={styles.menuItemSubtitle}>Lembretes no WhatsApp</Text>
+                    <Text style={styles.menuItemTitle}>Lembretes de cuidados</Text>
+                    <Text style={styles.menuItemSubtitle}>Consultas, vacinas e exames</Text>
                   </View>
                 </View>
                 <Switch
-                  value={whatsappAlerts}
-                  onValueChange={setWhatsappAlerts}
+                  value={preferences.careReminders}
+                  onValueChange={(enabled) => setPreference('careReminders', enabled)}
                   trackColor={{ false: '#D5D8DC', true: COLORS.primary }}
                   thumbColor={COLORS.white}
                 />
