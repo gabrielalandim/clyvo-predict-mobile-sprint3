@@ -11,7 +11,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://TROQUE-PELA-URL-DA-API/api"
+        "EXPO_PUBLIC_API_URL": "https://clyvo-api-kr5f.onrender.com/api"
       }
     },
     "production": {

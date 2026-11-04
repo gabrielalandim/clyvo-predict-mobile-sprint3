@@ -3,6 +3,12 @@
   "expo": {
     "name": "ClyvoPredict",
     "slug": "ClyvoPredict",
+    "owner": "gabilandim",
+    "extra": {
+      "eas": {
+        "projectId": "0f2c7357-652e-4bd3-8988-e30d4a94337e"
+      }
+    },
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
