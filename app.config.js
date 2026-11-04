@@ -1,15 +1,15 @@
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 
-function git(command) {
+function git(...args) {
   try {
-    return execSync(`git ${command}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+    return execFileSync('git', args, { stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true }).toString().trim();
   } catch {
     return '';
   }
 }
 
-const commitHash = process.env.EAS_BUILD_GIT_COMMIT_HASH || git('rev-parse HEAD') || 'desconhecido';
-const hasLocalChanges = !process.env.EAS_BUILD_GIT_COMMIT_HASH && git('status --porcelain').length > 0;
+const commitHash = process.env.EAS_BUILD_GIT_COMMIT_HASH || git('rev-parse', 'HEAD') || 'desconhecido';
+const hasLocalChanges = !process.env.EAS_BUILD_GIT_COMMIT_HASH && git('status', '--porcelain').length > 0;
 
 module.exports = ({ config }) => ({
   ...config,
