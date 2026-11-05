@@ -11,10 +11,13 @@ Na sprint 4 o app foi finalizado: todas as telas têm ação real, a integraçã
 
 | Item | Onde |
 |---|---|
-| 🎥 Vídeo de apresentação (sprint 4) | **[COLE AQUI O LINK DO YOUTUBE]** |
+| 🎥 Vídeo de apresentação (sprint 4) | **https://youtu.be/LFDP5aBK7wc** |
 | 📲 App publicado | Firebase App Distribution — o e-mail institucional do professor está cadastrado como tester |
-| 🔖 Versão publicada | `1.0.0` · commit **`[COLE AQUI O HASH CURTO]`** (o mesmo exibido em **Perfil › Sobre o App**) |
-| ☕ API Java (sprint 4) | `clyvo-predict-sprint-04` — hospedada em **[COLE AQUI A URL DA API]** |
+| 🔖 Versão publicada | `1.0.4` (versionCode 5) · commit **`84e460b`** (o mesmo exibido em **Perfil › Sobre o App**) |
+| ☕ API Java (sprint 4) | Branch `sprint-04` do repositório `clyvo-predict` — hospedada em **https://clyvo-api-kr5f.onrender.com/api** ([Swagger](https://clyvo-api-kr5f.onrender.com/swagger-ui/index.html)) |
+| 🤖 Serviço de IA (Python) | Hospedado em **https://clyvo-ia.onrender.com** (consumido pela API Java) |
+
+> A API e a IA estão no plano gratuito do Render: a primeira requisição depois de um tempo parado pode levar até 1 minuto.
 
 ---
 
@@ -46,11 +49,14 @@ Na sprint 4 o app foi finalizado: todas as telas têm ação real, a integraçã
   - O tutor do pet passa a ser definido pelo **JWT** no backend (o app não envia mais `tutorId`).
   - `403` agora significa "recurso de outro tutor" e não derruba mais a sessão; só `401` encerra o login.
   - **Editar perfil e alterar senha** com `GET/PUT /api/tutores/{id}` (com confirmação da senha atual e renovação do token).
+- **Perfis Tutor e Veterinário**: Login e Cadastro têm a escolha do perfil e usam o endpoint de cada um (`/api/tutores` ou `/api/veterinarios`; o veterinário informa o CRMV). O veterinário vê todos os pacientes e registra eventos, mas não cria, edita nem exclui pets, nem vê planos. As permissões vêm do `role` do JWT validado pela API.
 - **Notificações locais (expo-notifications)** — ver seção abaixo.
+- **Lembretes no horário exato**: o app declara `SCHEDULE_EXACT_ALARM`/`USE_EXACT_ALARM`, então o Android não atrasa os lembretes agendados mesmo com o app fechado.
 - **Telas que antes não tinham ação agora funcionam**: sino da Home (central de notificações), Editar Perfil, Alterar Senha, Central de Ajuda, Termos de Uso, Privacidade (LGPD), Ver Premium, Sobre o App, switches de preferências e o card "Próximos cuidados".
 - **Tela "Sobre o App"** com versão, data do build e **hash do commit** da versão publicada.
 - **Correção de navegação**: no React Navigation 7 o `navigate()` empilhava telas repetidas (voltar levava ao formulário já salvo). Agora usamos `popTo`/`goBack` e a barra inferior reaproveita a aba aberta.
 - **Tema claro/escuro** segue o sistema até o usuário escolher no perfil.
+- **Android 15/16**: fonte Roboto embarcada (`assets/fonts` + `components/AppText`), `targetSdk 34` e respeito à barra de navegação do sistema, para evitar textos cortados e rodapé escondido.
 - **Publicação**: `eas.json` gera APK, URL da API vem de variável de ambiente (`EXPO_PUBLIC_API_URL`), `requireCommit` garante que todo build corresponde a um commit.
 
 ---
@@ -88,9 +94,9 @@ Escolhemos **notificações locais** porque os dois cenários nascem de eventos 
 | Tela | Rota | O que faz |
 |---|---|---|
 | Welcome | `Welcome` | Onboarding |
-| Login | `Login` | `POST /api/tutores/login`, guarda o JWT no SecureStore |
-| Cadastro | `Register` | `POST /api/tutores` e login automático |
-| Home | `Home` | Lista de pets (`GET /api/pets`), sino de notificações, planos |
+| Login | `Login` | Escolha Tutor/Veterinário, `POST /api/tutores/login` ou `/api/veterinarios/login`, guarda o JWT no SecureStore |
+| Cadastro | `Register` | `POST /api/tutores` (telefone) ou `/api/veterinarios` (CRMV) e login automático |
+| Home | `Home` | Tutor: seus pets, sino e planos · Veterinário: todos os pacientes (`GET /api/pets`) |
 | Escolha de cadastro | `AddPetChoice` | Manual ou com IA |
 | Cadastrar/Editar pet | `AddPet` | Formulário único (`manual`/`photo`/`edit`), análise de foto via `POST /api/pets/analisar-cadastro` |
 | Detalhes do pet | `PetDetails` | Score, breakdown, próximos cuidados, anotações, histórico com editar/excluir evento |
@@ -162,7 +168,7 @@ export DB_PASSWORD=sua_senha
 
 ### 2. Serviço de IA (Python)
 
-Rodando na URL de `clyvo.ai.url` (padrão `http://localhost:5000`).
+Rodando na URL de `clyvo.ai.url` (padrão `http://localhost:5000`). Na versão publicada, a API usa `CLYVO_AI_URL=https://clyvo-ia.onrender.com`.
 
 ### 3. Mobile
 
@@ -174,6 +180,7 @@ npx expo start -c
 
 | Onde vai testar | `EXPO_PUBLIC_API_URL` |
 |---|---|
+| API hospedada (sem rodar o Java) | `https://clyvo-api-kr5f.onrender.com/api` |
 | Emulador Android | `http://10.0.2.2:8080/api` |
 | Simulador iOS | `http://localhost:8080/api` |
 | Celular físico (Expo Go) | `http://IP_DO_PC:8080/api` (mesma Wi-Fi) |
